@@ -25,7 +25,7 @@ const PolicyRow = ({ policy, isExpanded, onToggle }: PolicyRowProps) => {
       <TableCell>
         <div className="flex flex-col">
           <span className="font-medium">{policy.accountName}</span>
-          <span className="text-xs text-muted-foreground">POL-{policy.id}</span>
+          <span className="text-xs text-muted-foreground">{policy.id}</span>
         </div>
       </TableCell>
       <TableCell>

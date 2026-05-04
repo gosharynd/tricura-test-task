@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -53,7 +53,8 @@ const FiltersModal = ({ open, onOpenChange, filters, onApply }: FiltersModalProp
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Filter Policies</DialogTitle>
+          <DialogTitle>Filters</DialogTitle>
+          <DialogDescription>Narrow the policy list. Filters are combined with AND.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
@@ -62,7 +63,7 @@ const FiltersModal = ({ open, onOpenChange, filters, onApply }: FiltersModalProp
             <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Region
             </label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-wrap gap-4">
               {REGIONS.map((region) => (
                 <label key={region} className="flex items-center gap-2 text-sm cursor-pointer">
                   <Checkbox

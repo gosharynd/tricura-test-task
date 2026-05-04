@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { Plus, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Table, TableHeader, TableHead, TableRow, TableBody,
@@ -75,8 +75,7 @@ const PoliciesTable = ({
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Policies</h2>
         <Button onClick={onCreateNew} size="sm">
-          <Plus className="h-4 w-4 mr-1" />
-          New Policy
+          + New Policy
         </Button>
       </div>
 

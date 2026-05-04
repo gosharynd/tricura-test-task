@@ -4,7 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import ErrorState from '@/components/common/ErrorState'
 import RiskBadge from './RiskBadge'
 import { formatCurrencyAbbr, formatDate } from '@/lib/format'
-import { SEVERITY_COLORS } from '../risk'
+import { SEVERITY_COLORS, computeRiskLevel } from '../risk'
 import type { Policy } from '../types'
 
 type PolicyDetailProps = {
@@ -93,7 +93,7 @@ const PolicyDetail = ({ policy, isLoading, isError, error, onRetry, onEdit, onDe
                   </div>
                   <div className="h-2 w-full rounded-full bg-muted">
                     <div
-                      className="h-full rounded-full bg-orange-500 transition-all"
+                      className={`h-full rounded-full transition-all ${computeRiskLevel(policy.financials.reimbursementRisk) === 'High' ? 'bg-red-500' : computeRiskLevel(policy.financials.reimbursementRisk) === 'Medium' ? 'bg-orange-500' : 'bg-green-500'}`}
                       style={{ width: `${Math.min(policy.financials.reimbursementRisk * 100, 100)}%` }}
                     />
                   </div>
@@ -104,7 +104,7 @@ const PolicyDetail = ({ policy, isLoading, isError, error, onRetry, onEdit, onDe
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Compliance
+                    Compliance &middot; {policy.compliance.missingDocuments} missing &middot; {policy.compliance.expiredDocuments} expired
                   </h4>
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" onClick={onEdit}>
@@ -115,16 +115,15 @@ const PolicyDetail = ({ policy, isLoading, isError, error, onRetry, onEdit, onDe
                     </Button>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {policy.compliance.missingDocuments} missing &middot; {policy.compliance.expiredDocuments} expired
-                </p>
                 {policy.compliance.pendingReviews.length > 0 && (
                   <ul className="space-y-1.5">
                     {policy.compliance.pendingReviews.map((review, idx) => (
                       <li key={idx} className="flex items-center gap-2 text-sm">
-                        <span className={`h-2 w-2 rounded-full ${SEVERITY_COLORS[review.severity].replace('text-', 'bg-')}`} />
                         <span className="flex-1">{review.type}</span>
                         <span className="text-xs text-muted-foreground">{formatDate(review.dueDate)}</span>
+                        <span className={`text-xs font-medium ${SEVERITY_COLORS[review.severity]}`}>
+                          {review.severity}
+                        </span>
                       </li>
                     ))}
                   </ul>

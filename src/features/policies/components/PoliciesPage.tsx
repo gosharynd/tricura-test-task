@@ -126,7 +126,7 @@ const PoliciesPage = () => {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search policies..."
+            placeholder="Search accounts by name..."
             value={filters.search ?? ''}
             onChange={handleSearchChange}
             className="pl-9"
@@ -134,12 +134,7 @@ const PoliciesPage = () => {
         </div>
         <Button variant="outline" onClick={() => setFiltersOpen(true)}>
           <SlidersHorizontal className="h-4 w-4 mr-2" />
-          Filters
-          {activeFilterCount > 0 && (
-            <span className="ml-1.5 inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-medium h-5 w-5">
-              {activeFilterCount}
-            </span>
-          )}
+          {activeFilterCount > 0 ? `FILTERS · ${activeFilterCount}` : 'FILTERS'}
         </Button>
       </div>
 

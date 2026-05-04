@@ -78,7 +78,7 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, isPending
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{mode === 'create' ? 'Create Policy' : 'Edit Policy'}</DialogTitle>
+          <DialogTitle>{mode === 'create' ? 'Create New Policy' : 'Edit Policy'}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6 py-4">
@@ -254,7 +254,7 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, isPending
               Cancel
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending ? 'Saving...' : mode === 'create' ? 'Create' : 'Save'}
+              {isPending ? 'Saving...' : mode === 'create' ? 'Create Policy' : 'Save Changes'}
             </Button>
           </DialogFooter>
         </form>
