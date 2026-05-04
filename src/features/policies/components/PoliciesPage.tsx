@@ -120,10 +120,10 @@ const PoliciesPage = () => {
   }, [formModal, createMutate, updateMutate])
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="p-6 space-y-4 max-w-[960px] mx-auto">
       {/* Search + Filter bar */}
       <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search accounts by name..."
@@ -132,7 +132,11 @@ const PoliciesPage = () => {
             className="pl-9"
           />
         </div>
-        <Button variant="outline" onClick={() => setFiltersOpen(true)}>
+        <Button
+          variant="outline"
+          onClick={() => setFiltersOpen(true)}
+          className={activeFilterCount > 0 ? 'text-blue-600 border-blue-600' : ''}
+        >
           <SlidersHorizontal className="h-4 w-4 mr-2" />
           {activeFilterCount > 0 ? `FILTERS · ${activeFilterCount}` : 'FILTERS'}
         </Button>

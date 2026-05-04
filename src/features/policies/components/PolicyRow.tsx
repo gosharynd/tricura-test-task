@@ -1,4 +1,3 @@
-import { ChevronRight, ChevronDown } from 'lucide-react'
 import { TableRow, TableCell } from '@/components/ui/table'
 import RiskBadge from './RiskBadge'
 import { formatCurrency, formatDate } from '@/lib/format'
@@ -11,8 +10,6 @@ type PolicyRowProps = {
 }
 
 const PolicyRow = ({ policy, isExpanded, onToggle }: PolicyRowProps) => {
-  const ChevronIcon = isExpanded ? ChevronDown : ChevronRight
-
   return (
     <TableRow
       className="cursor-pointer"
@@ -20,7 +17,7 @@ const PolicyRow = ({ policy, isExpanded, onToggle }: PolicyRowProps) => {
       onClick={onToggle}
     >
       <TableCell className="w-8">
-        <ChevronIcon className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm text-muted-foreground">{isExpanded ? '▾' : '▸'}</span>
       </TableCell>
       <TableCell>
         <div className="flex flex-col">

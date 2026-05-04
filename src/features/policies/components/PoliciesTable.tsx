@@ -66,26 +66,33 @@ const PoliciesTable = ({
   const startItem = (page - 1) * limit + 1
   const endItem = Math.min(page * limit, total)
 
-  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1)
-    .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+  const pageNumbers = (() => {
+    const maxVisible = 5
+    const count = Math.min(maxVisible, totalPages)
+    let start = Math.max(1, page - Math.floor(count / 2))
+    const end = Math.min(totalPages, start + count - 1)
+    start = Math.max(1, end - count + 1)
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i)
+  })()
 
   return (
-    <div className="space-y-4">
+    <>
+    <div className="border rounded-lg">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between p-4">
         <h2 className="text-lg font-semibold">Policies</h2>
-        <Button onClick={onCreateNew} size="sm">
-          + New Policy
+        <Button onClick={onCreateNew} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white uppercase text-xs font-semibold tracking-wide">
+          + NEW POLICY
         </Button>
       </div>
 
       {/* Table */}
-      <div className="rounded-md border">
+      <div>
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-8" />
-              <TableHead>Account</TableHead>
+              <TableHead>Account Name</TableHead>
               <TableHead>Region</TableHead>
               <TableHead className="text-center">Facilities</TableHead>
               <TableHead>Effective Date</TableHead>
@@ -153,7 +160,7 @@ const PoliciesTable = ({
 
       {/* Pagination */}
       {data && data.data.length > 0 && (
-        <div className="flex items-center justify-between text-sm">
+        <div className="flex items-center justify-between text-sm p-4 border-t">
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground">Rows per page</span>
             <Select value={String(limit)} onValueChange={(v) => onLimitChange(Number(v))}>
@@ -181,22 +188,17 @@ const PoliciesTable = ({
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            {pageNumbers.map((p, idx) => {
-              const prev = pageNumbers[idx - 1]
-              const showEllipsis = prev !== undefined && p - prev > 1
-              return (
-                <span key={p} className="contents">
-                  {showEllipsis && <span className="px-1 text-muted-foreground">...</span>}
-                  <Button
-                    variant={p === page ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => onPageChange(p)}
-                  >
-                    {p}
-                  </Button>
-                </span>
-              )
-            })}
+            {pageNumbers.map((p) => (
+              <Button
+                key={p}
+                variant={p === page ? 'default' : 'outline'}
+                size="sm"
+                className={p === page ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}
+                onClick={() => onPageChange(p)}
+              >
+                {p}
+              </Button>
+            ))}
             <Button
               variant="outline"
               size="sm"
@@ -209,6 +211,8 @@ const PoliciesTable = ({
         </div>
       )}
 
+    </div>
+
       {/* Delete Confirm */}
       <ConfirmDialog
         open={deleteId !== null}
@@ -219,7 +223,7 @@ const PoliciesTable = ({
         onConfirm={handleConfirmDelete}
         isPending={deletePending}
       />
-    </div>
+    </>
   )
 }
 

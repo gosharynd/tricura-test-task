@@ -1,10 +1,8 @@
 import { TableRow, TableCell } from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import ErrorState from '@/components/common/ErrorState'
-import RiskBadge from './RiskBadge'
-import { formatCurrencyAbbr, formatDate } from '@/lib/format'
-import { SEVERITY_COLORS, computeRiskLevel } from '../risk'
+import { formatCurrencyAbbr, formatDate, formatDateShort } from '@/lib/format'
+import { SEVERITY_COLORS, RISK_COLORS, computeRiskLevel } from '../risk'
 import type { Policy } from '../types'
 
 type PolicyDetailProps = {
@@ -29,7 +27,7 @@ const LoadingSkeleton = () => (
   </div>
 )
 
-const PolicyDetail = ({ policy, isLoading, isError, error, onRetry, onEdit, onDelete }: PolicyDetailProps) => {
+const PolicyDetail = ({ policy, isLoading, isError, error, onRetry, onEdit, onDelete: _onDelete }: PolicyDetailProps) => {
   return (
     <TableRow>
       <TableCell colSpan={8} className="p-0">
@@ -44,93 +42,108 @@ const PolicyDetail = ({ policy, isLoading, isError, error, onRetry, onEdit, onDe
               />
             </div>
           )}
-          {policy && !isLoading && !isError && (
-            <div className="grid grid-cols-3 gap-6 p-6">
-              {/* Renewal & Account */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Renewal & Account
-                </h4>
-                <dl className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <dt className="text-muted-foreground">Effective Date</dt>
-                    <dd>{formatDate(policy.renewal.effectiveDate)}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-muted-foreground">Days to Renewal</dt>
-                    <dd>{policy.renewal.daysUntilRenewal}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-muted-foreground">Region</dt>
-                    <dd>{policy.account.region}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-muted-foreground">Facilities</dt>
-                    <dd>{policy.account.facilityCount}</dd>
-                  </div>
-                </dl>
-              </div>
+          {policy && !isLoading && !isError && (() => {
+            const riskLevel = computeRiskLevel(policy.financials.reimbursementRisk)
+            const riskBarColor = riskLevel === 'High' ? 'bg-red-500' : riskLevel === 'Medium' ? 'bg-orange-500' : 'bg-green-500'
 
-              {/* Financials */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Financials
-                </h4>
-                <dl className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <dt className="text-muted-foreground">Premium</dt>
-                    <dd className="font-medium">{formatCurrencyAbbr(policy.financials.premium)}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-muted-foreground">Claims Total</dt>
-                    <dd className="font-medium">{formatCurrencyAbbr(policy.financials.claimsTotal)}</dd>
-                  </div>
-                </dl>
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Reimbursement Risk</span>
-                    <RiskBadge reimbursementRisk={policy.financials.reimbursementRisk} />
-                  </div>
-                  <div className="h-2 w-full rounded-full bg-muted">
-                    <div
-                      className={`h-full rounded-full transition-all ${computeRiskLevel(policy.financials.reimbursementRisk) === 'High' ? 'bg-red-500' : computeRiskLevel(policy.financials.reimbursementRisk) === 'Medium' ? 'bg-orange-500' : 'bg-green-500'}`}
-                      style={{ width: `${Math.min(policy.financials.reimbursementRisk * 100, 100)}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Compliance */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Compliance &middot; {policy.compliance.missingDocuments} missing &middot; {policy.compliance.expiredDocuments} expired
+            return (
+              <div className="grid grid-cols-3 divide-x">
+                {/* Renewal & Account */}
+                <div className="p-6">
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider mb-4">
+                    Renewal & Account
                   </h4>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={onEdit}>
-                      Edit
-                    </Button>
-                    <Button variant="destructive" size="sm" onClick={onDelete}>
-                      Delete
-                    </Button>
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                    <div>
+                      <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Effective</div>
+                      <div className="text-sm font-semibold mt-0.5">{formatDate(policy.renewal.effectiveDate)}</div>
+                    </div>
+                    <div>
+                      <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Days to renewal</div>
+                      <div className="text-sm font-semibold mt-0.5">{policy.renewal.daysUntilRenewal}</div>
+                    </div>
+                    <div>
+                      <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Region</div>
+                      <div className="text-sm font-semibold mt-0.5">{policy.account.region}</div>
+                    </div>
+                    <div>
+                      <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Facilities</div>
+                      <div className="text-sm font-semibold mt-0.5">{policy.account.facilityCount}</div>
+                    </div>
                   </div>
                 </div>
-                {policy.compliance.pendingReviews.length > 0 && (
-                  <ul className="space-y-1.5">
+
+                {/* Financials */}
+                <div className="p-6">
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider mb-4">
+                    Financials
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Premium</div>
+                      <div className="text-xl font-bold mt-0.5">{formatCurrencyAbbr(policy.financials.premium)}</div>
+                    </div>
+                    <div>
+                      <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Claims</div>
+                      <div className="text-xl font-bold mt-0.5">{formatCurrencyAbbr(policy.financials.claimsTotal)}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-muted-foreground">Reimbursement risk</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${RISK_COLORS[riskLevel]}`}>
+                          {riskLevel}
+                        </span>
+                        <span className="text-sm">{policy.financials.reimbursementRisk.toFixed(2)}</span>
+                      </div>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-gray-200">
+                      <div
+                        className={`h-full rounded-full ${riskBarColor}`}
+                        style={{ width: `${Math.min(policy.financials.reimbursementRisk * 100, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Compliance */}
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider">
+                      Compliance
+                      <span className="font-normal text-muted-foreground">
+                        {' '}· {policy.compliance.missingDocuments} missing · {policy.compliance.expiredDocuments} expired
+                      </span>
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={onEdit}
+                      className="text-[11px] font-bold uppercase tracking-wider text-blue-600 hover:text-blue-700"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                  <div className="space-y-4">
                     {policy.compliance.pendingReviews.map((review, idx) => (
-                      <li key={idx} className="flex items-center gap-2 text-sm">
-                        <span className="flex-1">{review.type}</span>
-                        <span className="text-xs text-muted-foreground">{formatDate(review.dueDate)}</span>
-                        <span className={`text-xs font-medium ${SEVERITY_COLORS[review.severity]}`}>
+                      <div key={idx} className="flex items-start justify-between">
+                        <div>
+                          <div className="text-sm font-medium">{review.type}</div>
+                          <div className="text-xs text-muted-foreground mt-0.5">
+                            Due {formatDateShort(review.dueDate)}
+                          </div>
+                        </div>
+                        <span className={`text-xs font-medium flex items-center gap-1 ${SEVERITY_COLORS[review.severity]}`}>
+                          <span>●</span>
                           {review.severity}
                         </span>
-                      </li>
+                      </div>
                     ))}
-                  </ul>
-                )}
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
+            )
+          })()}
         </div>
       </TableCell>
     </TableRow>
