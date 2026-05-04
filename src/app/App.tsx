@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import PoliciesPage from '@/features/policies/components/PoliciesPage'
 
@@ -22,7 +22,8 @@ const App = () => {
             <span className="text-sm font-semibold">Policy Review Dashboard</span>
           </header>
           <Routes>
-            <Route path="/" element={<PoliciesPage />} />
+            <Route path="/policies" element={<PoliciesPage />} />
+            <Route path="/" element={<Navigate to="/policies" replace />} />
           </Routes>
         </div>
       </BrowserRouter>
