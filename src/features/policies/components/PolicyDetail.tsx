@@ -109,7 +109,7 @@ const PolicyDetail = ({ policy, isLoading, isError, error, onRetry, onEdit, onDe
 
                 {/* Compliance */}
                 <div className="p-6">
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between gap-2 mb-4">
                     <h4 className="text-[11px] font-bold uppercase tracking-wider">
                       Compliance
                       <span className="font-normal text-muted-foreground">
