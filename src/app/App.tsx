@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import PoliciesPage from '@/features/policies/components/PoliciesPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,7 +22,7 @@ const App = () => {
             <span className="text-sm font-semibold">Policy Review Dashboard</span>
           </header>
           <Routes>
-            <Route path="/" element={<div>Dashboard placeholder</div>} />
+            <Route path="/" element={<PoliciesPage />} />
           </Routes>
         </div>
       </BrowserRouter>
