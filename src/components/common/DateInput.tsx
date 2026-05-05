@@ -7,9 +7,11 @@ type DateInputProps = {
   value: string | undefined
   onChange: (value: string | undefined) => void
   placeholder?: string
+  /** "inline" renders without border/wrapper — for use inside FloatingInput */
+  variant?: 'default' | 'inline'
 }
 
-const DateInput = memo(({ value, onChange, placeholder = 'Select date' }: DateInputProps) => {
+const DateInput = memo(({ value, onChange, placeholder = 'Select date', variant = 'default' }: DateInputProps) => {
   const dateRef = useRef<HTMLInputElement>(null)
   const display = value ? formatDate(value) : ''
 
@@ -20,6 +22,25 @@ const DateInput = memo(({ value, onChange, placeholder = 'Select date' }: DateIn
   const handleOpen = useCallback(() => {
     dateRef.current?.showPicker()
   }, [])
+
+  if (variant === 'inline') {
+    return (
+      <div className="relative cursor-pointer flex items-center" onClick={handleOpen}>
+        <span className={`flex-1 text-sm ${display ? 'text-black/87' : 'text-black/38'}`}>
+          {display || placeholder}
+        </span>
+        <input
+          ref={dateRef}
+          type="date"
+          value={value ?? ''}
+          onChange={handleChange}
+          className="absolute bottom-0 left-0 w-full h-0 opacity-0 pointer-events-none"
+          tabIndex={-1}
+          aria-hidden="true"
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="relative cursor-pointer" onClick={handleOpen}>

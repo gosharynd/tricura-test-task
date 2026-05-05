@@ -6,13 +6,12 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Slider } from '@/components/ui/slider'
 import DateInput from '@/components/common/DateInput'
+import FloatingInput from '@/components/common/FloatingInput'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
 import { REGIONS, SEVERITIES, REVIEW_TYPES, RISK_RANGE } from '../constants'
 import { PolicyFormSchema, DEFAULT_FORM_VALUES } from './PolicyFormModal.schema'
 import type { PolicyFormData } from './PolicyFormModal.schema'
@@ -90,7 +89,7 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, onDelete,
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[720px] max-h-[85vh] overflow-y-auto scrollbar-hide">
+      <DialogContent className="max-w-[720px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{mode === 'create' ? 'Create New Policy' : 'Edit Policy'}</DialogTitle>
           {mode === 'edit' && policy && (
@@ -98,20 +97,21 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, onDelete,
           )}
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 py-4">
           {/* Account */}
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-black/60">Account</h4>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Account Name</label>
-                <Input {...register('accountName')} placeholder="Account name" />
-                {errors.accountName && <p className="text-xs text-red-500">{errors.accountName.message}</p>}
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Region</label>
+            <h5 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-black/60 pb-1.5 border-b border-black/6">Account</h5>
+            <div className="grid grid-cols-3 gap-3">
+              <FloatingInput legend="Account name">
+                <input
+                  {...register('accountName')}
+                  placeholder="Account name"
+                  className="w-full text-[13px] text-black/87 bg-transparent outline-none placeholder:text-black/38"
+                />
+              </FloatingInput>
+              <FloatingInput legend="Region">
                 <Select value={watch('region')} onValueChange={handleRegionChange}>
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className="w-full w-full !h-auto border-0 p-0 shadow-none focus:ring-0 text-[13px]">
                     <SelectValue placeholder="Select region" />
                   </SelectTrigger>
                   <SelectContent>
@@ -120,101 +120,117 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, onDelete,
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.region && <p className="text-xs text-red-500">{errors.region.message}</p>}
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Facility Count</label>
-                <Input type="number" {...register('facilityCount', { valueAsNumber: true })} />
-                {errors.facilityCount && <p className="text-xs text-red-500">{errors.facilityCount.message}</p>}
-              </div>
+              </FloatingInput>
+              <FloatingInput legend="Facility count">
+                <input
+                  type="number"
+                  {...register('facilityCount', { valueAsNumber: true })}
+                  className="w-full text-[13px] text-black/87 bg-transparent outline-none placeholder:text-black/38"
+                />
+              </FloatingInput>
             </div>
+            {errors.accountName && <p className="text-xs text-red-500">{errors.accountName.message}</p>}
+            {errors.region && <p className="text-xs text-red-500">{errors.region.message}</p>}
+            {errors.facilityCount && <p className="text-xs text-red-500">{errors.facilityCount.message}</p>}
           </div>
-
-          <Separator />
 
           {/* Renewal */}
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-black/60">Renewal</h4>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Effective Date</label>
-                <DateInput value={watch('effectiveDate') || undefined} onChange={handleEffectiveDateChange} />
-                {errors.effectiveDate && <p className="text-xs text-red-500">{errors.effectiveDate.message}</p>}
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Days Until Renewal</label>
-                <Input type="number" {...register('daysUntilRenewal', { valueAsNumber: true })} />
-                {errors.daysUntilRenewal && <p className="text-xs text-red-500">{errors.daysUntilRenewal.message}</p>}
-              </div>
+            <h5 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-black/60 pb-1.5 border-b border-black/6">Renewal</h5>
+            <div className="grid grid-cols-2 gap-3">
+              <FloatingInput legend="Effective date">
+                <DateInput value={watch('effectiveDate') || undefined} onChange={handleEffectiveDateChange} variant="inline" />
+              </FloatingInput>
+              <FloatingInput legend="Days until renewal (computed)">
+                <input
+                  type="number"
+                  {...register('daysUntilRenewal', { valueAsNumber: true })}
+                  className="w-full text-[13px] text-black/87 bg-transparent outline-none placeholder:text-black/38"
+                />
+              </FloatingInput>
             </div>
+            {errors.effectiveDate && <p className="text-xs text-red-500">{errors.effectiveDate.message}</p>}
+            {errors.daysUntilRenewal && <p className="text-xs text-red-500">{errors.daysUntilRenewal.message}</p>}
           </div>
-
-          <Separator />
 
           {/* Financials */}
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-black/60">Financials</h4>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Premium ($)</label>
-                <Input type="number" {...register('premium', { valueAsNumber: true })} />
-                {errors.premium && <p className="text-xs text-red-500">{errors.premium.message}</p>}
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Claims Total ($)</label>
-                <Input type="number" {...register('claimsTotal', { valueAsNumber: true })} />
-                {errors.claimsTotal && <p className="text-xs text-red-500">{errors.claimsTotal.message}</p>}
-              </div>
+            <h5 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-black/60 pb-1.5 border-b border-black/6">Financials</h5>
+            <div className="grid grid-cols-2 gap-3">
+              <FloatingInput legend="Premium ($)">
+                <input
+                  type="number"
+                  {...register('premium', { valueAsNumber: true })}
+                  className="w-full text-[13px] text-black/87 bg-transparent outline-none placeholder:text-black/38"
+                />
+              </FloatingInput>
+              <FloatingInput legend="Claims total ($)">
+                <input
+                  type="number"
+                  {...register('claimsTotal', { valueAsNumber: true })}
+                  className="w-full text-[13px] text-black/87 bg-transparent outline-none placeholder:text-black/38"
+                />
+              </FloatingInput>
             </div>
+            {errors.premium && <p className="text-xs text-red-500">{errors.premium.message}</p>}
+            {errors.claimsTotal && <p className="text-xs text-red-500">{errors.claimsTotal.message}</p>}
           </div>
 
-          {/* Reimbursement Risk (under Financials) */}
+          {/* Reimbursement Risk (under Financials — no separator) */}
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-black/60">Reimbursement Risk</h4>
-            <div className="flex items-center gap-4">
-              <Input
-                type="number"
-                step={RISK_RANGE.step}
-                min={RISK_RANGE.min}
-                max={RISK_RANGE.max}
-                className="w-24"
-                {...register('reimbursementRisk', { valueAsNumber: true })}
-              />
-              <div className="flex-1">
-                <Slider
+            <h5 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-black/60 pb-1.5 border-b border-black/6">Reimbursement Risk</h5>
+            <div className="max-w-[180px]">
+              <FloatingInput legend="Value">
+                <input
+                  type="number"
+                  step={RISK_RANGE.step}
                   min={RISK_RANGE.min}
                   max={RISK_RANGE.max}
-                  step={RISK_RANGE.step}
-                  value={[riskValue]}
-                  onValueChange={handleRiskSliderChange}
+                  {...register('reimbursementRisk', { valueAsNumber: true })}
+                  className="w-full text-[13px] text-black/87 bg-transparent outline-none placeholder:text-black/38"
                 />
-              </div>
+              </FloatingInput>
+            </div>
+            <Slider
+              min={RISK_RANGE.min}
+              max={RISK_RANGE.max}
+              step={RISK_RANGE.step}
+              value={[riskValue]}
+              onValueChange={handleRiskSliderChange}
+            />
+            <div className="flex justify-between text-[11px] text-black/60 tabular-nums">
+              <span>0.00</span>
+              <span>1.00</span>
             </div>
             {errors.reimbursementRisk && <p className="text-xs text-red-500">{errors.reimbursementRisk.message}</p>}
           </div>
 
-          <Separator />
-
           {/* Compliance */}
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-black/60">Compliance</h4>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Missing Documents</label>
-                <Input type="number" {...register('missingDocuments', { valueAsNumber: true })} />
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Expired Documents</label>
-                <Input type="number" {...register('expiredDocuments', { valueAsNumber: true })} />
-              </div>
+            <h5 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-black/60 pb-1.5 border-b border-black/6">Compliance</h5>
+            <div className="grid grid-cols-2 gap-3">
+              <FloatingInput legend="Missing documents">
+                <input
+                  type="number"
+                  {...register('missingDocuments', { valueAsNumber: true })}
+                  className="w-full text-[13px] text-black/87 bg-transparent outline-none placeholder:text-black/38"
+                />
+              </FloatingInput>
+              <FloatingInput legend="Expired documents">
+                <input
+                  type="number"
+                  {...register('expiredDocuments', { valueAsNumber: true })}
+                  className="w-full text-[13px] text-black/87 bg-transparent outline-none placeholder:text-black/38"
+                />
+              </FloatingInput>
             </div>
           </div>
 
-          {/* Pending Reviews (under Compliance) */}
+          {/* Pending Reviews (under Compliance — no separator) */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-xs font-semibold uppercase tracking-wide text-black/60">Pending Reviews</h4>
-              <button type="button" onClick={handleAddReview} className="text-xs font-semibold uppercase tracking-wide text-[#1976d2] hover:text-[#1565c0]">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-black/60">Pending Reviews</span>
+              <button type="button" onClick={handleAddReview} className="text-xs font-medium uppercase tracking-wide text-[#1976d2] hover:text-[#1565c0]">
                 + Add Review
               </button>
             </div>
@@ -229,18 +245,22 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, onDelete,
             ))}
           </div>
 
-          <DialogFooter className="flex items-center">
-            {mode === 'edit' && onDelete && (
-              <Button type="button" variant="ghost" onClick={onDelete} disabled={isPending} className="mr-auto uppercase text-xs font-semibold tracking-wide text-black/60 hover:text-[#d32f2f] hover:bg-[#fdecea]">
+          <DialogFooter className="flex-row items-center sm:justify-between border-t border-black/12 pt-4">
+            {mode === 'edit' && onDelete ? (
+              <Button type="button" variant="ghost" onClick={onDelete} disabled={isPending} className="uppercase text-xs font-medium tracking-wide text-black/60 hover:text-[#d32f2f] hover:bg-[#fdecea]">
                 Delete policy
               </Button>
+            ) : (
+              <div />
             )}
-            <Button type="button" variant="ghost" onClick={handleCancel} disabled={isPending} className="uppercase text-xs font-semibold tracking-wide">
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isPending} className="bg-[#1976d2] hover:bg-[#1565c0] text-white uppercase text-xs font-semibold tracking-wide">
-              {isPending ? 'Saving...' : mode === 'create' ? 'Create policy' : 'Save changes'}
-            </Button>
+            <div className="flex gap-2">
+              <Button type="button" variant="ghost" onClick={handleCancel} disabled={isPending} className="uppercase text-xs font-medium tracking-wide">
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isPending} className="bg-[#1976d2] hover:bg-[#1565c0] text-white uppercase text-xs font-medium tracking-wide">
+                {isPending ? 'Saving...' : mode === 'create' ? 'Create policy' : 'Save changes'}
+              </Button>
+            </div>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -276,33 +296,39 @@ const PendingReviewField = memo(({ index, watch, setValue, onRemove }: PendingRe
   return (
     <div className="flex items-center gap-2">
       <div className="flex-[2]">
-        <Select value={watch(`pendingReviews.${index}.type`)} onValueChange={handleTypeChange}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Review type" />
-          </SelectTrigger>
-          <SelectContent>
-            {REVIEW_TYPES.map((t) => (
-              <SelectItem key={t} value={t}>{t}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <FloatingInput legend="Type">
+          <Select value={watch(`pendingReviews.${index}.type`)} onValueChange={handleTypeChange}>
+            <SelectTrigger className="w-full w-full !h-auto border-0 p-0 shadow-none focus:ring-0 text-[13px]">
+              <SelectValue placeholder="Review type" />
+            </SelectTrigger>
+            <SelectContent>
+              {REVIEW_TYPES.map((t) => (
+                <SelectItem key={t} value={t}>{t}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FloatingInput>
       </div>
       <div className="flex-1">
-        <DateInput value={watch(`pendingReviews.${index}.dueDate`) || undefined} onChange={handleDueDateChange} placeholder="Due date" />
+        <FloatingInput legend="Due date">
+          <DateInput value={watch(`pendingReviews.${index}.dueDate`) || undefined} onChange={handleDueDateChange} placeholder="Due date" variant="inline" />
+        </FloatingInput>
       </div>
       <div className="flex-1">
-        <Select value={watch(`pendingReviews.${index}.severity`)} onValueChange={handleSeverityChange}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Severity" />
-          </SelectTrigger>
-          <SelectContent>
-            {SEVERITIES.map((s) => (
-              <SelectItem key={s} value={s}>{s}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <FloatingInput legend="Severity">
+          <Select value={watch(`pendingReviews.${index}.severity`)} onValueChange={handleSeverityChange}>
+            <SelectTrigger className="w-full w-full !h-auto border-0 p-0 shadow-none focus:ring-0 text-[13px]">
+              <SelectValue placeholder="Severity" />
+            </SelectTrigger>
+            <SelectContent>
+              {SEVERITIES.map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FloatingInput>
       </div>
-      <button type="button" onClick={handleRemove} className="text-black/40 hover:text-black/60">
+      <button type="button" onClick={handleRemove} className="text-black/38 hover:text-black/60">
         <Trash2 className="h-4 w-4" />
       </button>
     </div>

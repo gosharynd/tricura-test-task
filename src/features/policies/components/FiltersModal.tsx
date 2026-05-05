@@ -5,6 +5,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import DateInput from '@/components/common/DateInput'
+import FloatingInput from '@/components/common/FloatingInput'
 import RangeSlider from '@/components/common/RangeSlider'
 import { REGIONS, PREMIUM_RANGE, CLAIMS_RANGE, RISK_RANGE } from '../constants'
 import { formatInteger, formatDecimal } from '@/lib/format'
@@ -92,7 +93,7 @@ const FiltersModal = ({ open, onOpenChange, filters, onApply }: FiltersModalProp
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[720px] max-h-[85vh] overflow-y-auto scrollbar-hide">
+      <DialogContent className="max-w-[720px]">
         <DialogHeader>
           <DialogTitle>Filters</DialogTitle>
           <DialogDescription>Narrow the policy list. Filters are combined with AND.</DialogDescription>
@@ -122,14 +123,12 @@ const FiltersModal = ({ open, onOpenChange, filters, onApply }: FiltersModalProp
               Effective Date Range
             </h5>
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="text-[11px] text-black/60">From</label>
-                <DateInput value={draft.effectiveDateFrom} onChange={handleDateFromChange} />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] text-black/60">To</label>
-                <DateInput value={draft.effectiveDateTo} onChange={handleDateToChange} />
-              </div>
+              <FloatingInput legend="From">
+                <DateInput value={draft.effectiveDateFrom} onChange={handleDateFromChange} variant="inline" />
+              </FloatingInput>
+              <FloatingInput legend="To">
+                <DateInput value={draft.effectiveDateTo} onChange={handleDateToChange} variant="inline" />
+              </FloatingInput>
             </div>
           </div>
 
@@ -170,16 +169,18 @@ const FiltersModal = ({ open, onOpenChange, filters, onApply }: FiltersModalProp
           />
         </div>
 
-        <DialogFooter>
-          <Button variant="ghost" onClick={handleReset} className="text-[#1976d2] uppercase text-xs font-semibold tracking-wide">
-            Reset all
+        <DialogFooter className="flex-row items-center sm:justify-between border-t border-black/12 pt-4">
+          <Button variant="ghost" onClick={handleReset} className="text-[#1976d2] uppercase text-xs font-medium tracking-wide">
+            Reset All
           </Button>
-          <Button variant="ghost" onClick={handleCancel} className="uppercase text-xs font-semibold tracking-wide">
-            Cancel
-          </Button>
-          <Button onClick={handleApply} className="bg-[#1976d2] hover:bg-[#1565c0] text-white uppercase text-xs font-semibold tracking-wide">
-            Apply filters
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="ghost" onClick={handleCancel} className="uppercase text-xs font-medium tracking-wide">
+              Cancel
+            </Button>
+            <Button onClick={handleApply} className="bg-[#1976d2] hover:bg-[#1565c0] text-white uppercase text-xs font-semibold tracking-wide">
+              Apply Filters
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

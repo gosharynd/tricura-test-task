@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect, memo } from 'react'
-import { Input } from '@/components/ui/input'
 import { Slider } from '@/components/ui/slider'
+import FloatingInput from './FloatingInput'
 import { parseFormattedNumber } from '@/lib/format'
 
 type RangeSliderProps = {
@@ -73,28 +73,28 @@ const RangeSlider = memo(({ label, min, max, step = 1, value, onChange, formatLa
     <div className="space-y-3">
       <h5 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-black/60 pb-1.5 border-b border-black/6 mb-2.5">{label}</h5>
       <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <label className="text-[11px] text-black/60">Min</label>
-          <Input
+        <FloatingInput legend="Min">
+          <input
             type="text"
             inputMode="decimal"
             value={minText}
             onChange={handleMinInput}
             onBlur={handleMinBlur}
             placeholder={minPlaceholder}
+            className="w-full text-sm font-mono text-black/87 bg-transparent outline-none placeholder:text-black/38"
           />
-        </div>
-        <div className="space-y-1">
-          <label className="text-[11px] text-black/60">Max</label>
-          <Input
+        </FloatingInput>
+        <FloatingInput legend="Max">
+          <input
             type="text"
             inputMode="decimal"
             value={maxText}
             onChange={handleMaxInput}
             onBlur={handleMaxBlur}
             placeholder={maxPlaceholder}
+            className="w-full text-sm font-mono text-black/87 bg-transparent outline-none placeholder:text-black/38"
           />
-        </div>
+        </FloatingInput>
       </div>
       <Slider min={min} max={max} step={step} value={sliderValue} onValueChange={handleSliderChange} />
       <div className="flex justify-between text-[11px] text-black/60 tabular-nums">
