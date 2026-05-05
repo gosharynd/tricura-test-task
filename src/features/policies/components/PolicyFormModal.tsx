@@ -173,7 +173,7 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, onDelete,
           <div className="space-y-3">
             <h5 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-black/60 pb-1.5 border-b border-black/6">Reimbursement Risk</h5>
             <div className="max-w-[180px]">
-              <FloatingInput legend="Value">
+              <FloatingInput legend="Value" error={errors.reimbursementRisk?.message}>
                 <input
                   type="number"
                   step={RISK_RANGE.step}
@@ -195,7 +195,6 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, onDelete,
               <span>0.00</span>
               <span>1.00</span>
             </div>
-            {errors.reimbursementRisk && <p className="text-xs text-red-500">{errors.reimbursementRisk.message}</p>}
           </div>
 
           {/* Compliance */}

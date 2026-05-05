@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, memo } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef, memo } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -44,9 +44,37 @@ const PoliciesTable = ({
   const { data: detailPolicy, isLoading: detailLoading, isError: detailError, error: detailErrorObj, refetch: refetchDetail } = usePolicy(expandedId)
   const { mutate: deleteMutate, isPending: deletePending } = useDeletePolicy()
 
+  const tableRef = useRef<HTMLDivElement>(null)
+
   const handleToggle = useCallback((id: string) => {
     setExpandedId((prev) => (prev === id ? null : id))
   }, [])
+
+  // Focus the table container when a row expands so ↑/↓ work immediately
+  useEffect(() => {
+    if (expandedId) {
+      tableRef.current?.focus({ preventScroll: true })
+    }
+  }, [expandedId])
+
+  // ↑/↓ keyboard navigation — move expanded row through the list
+  const handleTableKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (!data || data.data.length === 0 || !expandedId) return
+    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
+
+    e.preventDefault()
+    const ids = data.data.map((p) => p.id)
+    const currentIdx = ids.indexOf(expandedId)
+    if (currentIdx === -1) return
+
+    const nextIdx = e.key === 'ArrowDown'
+      ? Math.min(currentIdx + 1, ids.length - 1)
+      : Math.max(currentIdx - 1, 0)
+
+    if (nextIdx !== currentIdx) {
+      setExpandedId(ids[nextIdx])
+    }
+  }, [data, expandedId])
 
   const handleDelete = useCallback((id: string) => {
     setDeleteId(id)
@@ -110,7 +138,7 @@ const PoliciesTable = ({
 
   return (
     <>
-    <div className="bg-white border border-black/12 rounded-lg">
+    <div ref={tableRef} className="bg-white border border-black/12 rounded-lg outline-none" onKeyDown={handleTableKeyDown} tabIndex={-1}>
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3">
         <h2 className="text-base font-semibold text-black/87">Policies</h2>

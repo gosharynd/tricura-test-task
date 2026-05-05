@@ -76,7 +76,7 @@ const PolicyDetail = ({ policy, isLoading, isError, error, onRetry, onEdit }: Po
                   </div>
                   <div>
                     <div className="text-[11px] uppercase tracking-wider text-black/60">Days to renewal</div>
-                    <div className={`text-sm font-medium mt-0.5 tabular-nums ${policy.renewal.daysUntilRenewal < 0 ? 'text-[#d32f2f]' : 'text-black/87'}`}>{policy.renewal.daysUntilRenewal}</div>
+                    <div className={`text-sm font-medium mt-0.5 tabular-nums ${policy.renewal.daysUntilRenewal < 0 ? 'text-[#d32f2f]' : policy.renewal.daysUntilRenewal <= 30 ? 'text-[#ed6c02]' : 'text-black/87'}`}>{policy.renewal.daysUntilRenewal}</div>
                   </div>
                   <div>
                     <div className="text-[11px] uppercase tracking-wider text-black/60">Region</div>
