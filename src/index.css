@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@theme {
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

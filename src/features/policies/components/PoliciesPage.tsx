@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react'
-import { Search, SlidersHorizontal } from 'lucide-react'
+import { Search, SlidersHorizontal, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -9,7 +9,7 @@ import PoliciesTable from './PoliciesTable'
 import FiltersModal from './FiltersModal'
 import PolicyFormModal from './PolicyFormModal'
 import { usePolicyFilters } from '../filters/hook'
-import { usePolicies, usePolicy, useCreatePolicy, useUpdatePolicy } from '../api/queries'
+import { usePolicies, usePolicy, useCreatePolicy, useUpdatePolicy, useDeletePolicy } from '../api/queries'
 import type { ListPoliciesParams } from '../api/api'
 import type { PolicyFilters } from '../filters/schema'
 import type { PolicyFormData } from './PolicyFormModal.schema'
@@ -73,9 +73,14 @@ const PoliciesPage = () => {
 
   const { mutate: createMutate, isPending: createPending } = useCreatePolicy()
   const { mutate: updateMutate, isPending: updatePending } = useUpdatePolicy()
+  const { mutate: deleteMutate, isPending: deletePending } = useDeletePolicy()
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     updateFilter('search', e.target.value || undefined)
+  }, [updateFilter])
+
+  const handleClearSearch = useCallback(() => {
+    updateFilter('search', undefined)
   }, [updateFilter])
 
   const handleRemoveFilter = useCallback(<K extends keyof PolicyFilters>(key: K) => {
@@ -101,6 +106,19 @@ const PoliciesPage = () => {
   const handleOpenFilters = useCallback(() => {
     setFiltersOpen(true)
   }, [])
+
+  const handleFormDelete = useCallback(() => {
+    if (!formModal.policyId) return
+    deleteMutate(formModal.policyId, {
+      onSuccess: () => {
+        setFormModal({ open: false, mode: 'create' })
+        toast.success('Policy deleted successfully')
+      },
+      onError: (err) => {
+        toast.error('Failed to delete policy', { description: err.message })
+      },
+    })
+  }, [formModal.policyId, deleteMutate])
 
   const handleFormSubmit = useCallback((data: PolicyFormData) => {
     if (formModal.mode === 'create') {
@@ -159,16 +177,25 @@ const PoliciesPage = () => {
   return (
     <div className="p-6 space-y-4">
       {/* Filter bar card */}
-      <div className="bg-white border border-black/12 rounded-lg px-4 py-3 space-y-2">
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="relative w-[260px]">
+      <div className="bg-white border border-black/12 rounded-lg px-4 py-3 space-y-3">
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black/40" />
             <Input
               placeholder="Search accounts by name..."
               value={filters.search ?? ''}
               onChange={handleSearchChange}
-              className="pl-9 h-[36px] text-[13px] border-black/12 rounded"
+              className="pl-9 pr-9 h-[36px] text-[13px] border-black/12 rounded"
             />
+            {filters.search && (
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-black/40 hover:text-black/60"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
           <Button
             variant="outline"
@@ -178,8 +205,8 @@ const PoliciesPage = () => {
             <SlidersHorizontal className="h-3.5 w-3.5 mr-1.5" />
             {filterButtonLabel}
           </Button>
-          <FilterChips filters={filters} onRemove={handleRemoveFilter} onClearAll={resetFilters} />
         </div>
+        <FilterChips filters={filters} onRemove={handleRemoveFilter} onClearAll={resetFilters} />
       </div>
 
       {/* Table */}
@@ -211,7 +238,8 @@ const PoliciesPage = () => {
         mode={formModal.mode}
         policy={editPolicy}
         onSubmit={handleFormSubmit}
-        isPending={createPending || updatePending}
+        onDelete={handleFormDelete}
+        isPending={createPending || updatePending || deletePending}
       />
     </div>
   )

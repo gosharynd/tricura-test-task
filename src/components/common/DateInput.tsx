@@ -36,7 +36,7 @@ const DateInput = memo(({ value, onChange, placeholder = 'Select date' }: DateIn
         type="date"
         value={value ?? ''}
         onChange={handleChange}
-        className="sr-only"
+        className="absolute bottom-0 left-0 w-full h-0 opacity-0 pointer-events-none"
         tabIndex={-1}
         aria-hidden="true"
       />

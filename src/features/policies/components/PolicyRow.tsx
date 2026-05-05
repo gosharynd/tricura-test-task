@@ -35,7 +35,7 @@ const PolicyRow = memo(({ policy, isExpanded, onToggle }: PolicyRowProps) => {
       <TableCell>
         <div className="flex flex-col">
           <span className="text-[13px] font-medium text-black/87">{policy.accountName}</span>
-          <span className="text-[11px] text-black/60">{policy.id}</span>
+          <span className="text-[11px] font-mono uppercase tracking-wider text-black/60">{policy.id}</span>
         </div>
       </TableCell>
       <TableCell>
@@ -43,10 +43,10 @@ const PolicyRow = memo(({ policy, isExpanded, onToggle }: PolicyRowProps) => {
           {policy.region}
         </span>
       </TableCell>
-      <TableCell className="text-center">{policy.facilityCount}</TableCell>
-      <TableCell>{formatDate(policy.effectiveDate)}</TableCell>
-      <TableCell className="text-right">{formatCurrency(policy.premium)}</TableCell>
-      <TableCell className="text-right">{formatCurrency(policy.claimsTotal)}</TableCell>
+      <TableCell className="text-center tabular-nums">{policy.facilityCount}</TableCell>
+      <TableCell className="tabular-nums">{formatDate(policy.effectiveDate)}</TableCell>
+      <TableCell className="text-right tabular-nums">{formatCurrency(policy.premium)}</TableCell>
+      <TableCell className="text-right tabular-nums">{formatCurrency(policy.claimsTotal)}</TableCell>
       <TableCell>
         <RiskBadge reimbursementRisk={policy.reimbursementRisk} />
       </TableCell>

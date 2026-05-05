@@ -98,12 +98,12 @@ const FiltersModal = ({ open, onOpenChange, filters, onApply }: FiltersModalProp
           <DialogDescription>Narrow the policy list. Filters are combined with AND.</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="space-y-5 py-4">
           {/* Region */}
           <div className="space-y-3">
-            <span className="text-xs font-semibold uppercase tracking-wide text-black/60">
+            <h5 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-black/60 pb-1.5 border-b border-black/6 mb-2.5">
               Region
-            </span>
+            </h5>
             <div className="flex gap-4">
               {REGIONS.map((region) => (
                 <RegionCheckbox
@@ -118,16 +118,16 @@ const FiltersModal = ({ open, onOpenChange, filters, onApply }: FiltersModalProp
 
           {/* Effective Date Range */}
           <div className="space-y-3">
-            <span className="text-xs font-semibold uppercase tracking-wide text-black/60">
+            <h5 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-black/60 pb-1.5 border-b border-black/6 mb-2.5">
               Effective Date Range
-            </span>
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <label className="text-xs text-black/60">From</label>
+            </h5>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-[11px] text-black/60">From</label>
                 <DateInput value={draft.effectiveDateFrom} onChange={handleDateFromChange} />
               </div>
-              <div className="flex-1">
-                <label className="text-xs text-black/60">To</label>
+              <div className="space-y-1">
+                <label className="text-[11px] text-black/60">To</label>
                 <DateInput value={draft.effectiveDateTo} onChange={handleDateToChange} />
               </div>
             </div>
@@ -170,18 +170,16 @@ const FiltersModal = ({ open, onOpenChange, filters, onApply }: FiltersModalProp
           />
         </div>
 
-        <DialogFooter className="flex items-center justify-between sm:justify-between">
+        <DialogFooter>
           <Button variant="ghost" onClick={handleReset} className="text-[#1976d2] uppercase text-xs font-semibold tracking-wide">
-            Reset All
+            Reset all
           </Button>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleCancel} className="uppercase text-xs font-semibold tracking-wide">
-              Cancel
-            </Button>
-            <Button onClick={handleApply} className="bg-[#1976d2] hover:bg-[#1565c0] text-white uppercase text-xs font-semibold tracking-wide">
-              Apply Filters
-            </Button>
-          </div>
+          <Button variant="ghost" onClick={handleCancel} className="uppercase text-xs font-semibold tracking-wide">
+            Cancel
+          </Button>
+          <Button onClick={handleApply} className="bg-[#1976d2] hover:bg-[#1565c0] text-white uppercase text-xs font-semibold tracking-wide">
+            Apply filters
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

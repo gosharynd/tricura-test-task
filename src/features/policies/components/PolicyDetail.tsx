@@ -72,19 +72,19 @@ const PolicyDetail = ({ policy, isLoading, isError, error, onRetry, onEdit }: Po
                 <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                   <div>
                     <div className="text-[11px] uppercase tracking-wider text-black/60">Effective</div>
-                    <div className="text-[13px] font-normal mt-0.5 text-black/87">{formatDate(policy.renewal.effectiveDate)}</div>
+                    <div className="text-sm font-medium mt-0.5 text-black/87 tabular-nums">{formatDate(policy.renewal.effectiveDate)}</div>
                   </div>
                   <div>
                     <div className="text-[11px] uppercase tracking-wider text-black/60">Days to renewal</div>
-                    <div className="text-[13px] font-normal mt-0.5 text-black/87">{policy.renewal.daysUntilRenewal}</div>
+                    <div className="text-sm font-medium mt-0.5 text-black/87 tabular-nums">{policy.renewal.daysUntilRenewal}</div>
                   </div>
                   <div>
                     <div className="text-[11px] uppercase tracking-wider text-black/60">Region</div>
-                    <div className="text-[13px] font-normal mt-0.5 text-black/87">{policy.account.region}</div>
+                    <div className="text-sm font-medium mt-0.5 text-black/87">{policy.account.region}</div>
                   </div>
                   <div>
                     <div className="text-[11px] uppercase tracking-wider text-black/60">Facilities</div>
-                    <div className="text-[13px] font-normal mt-0.5 text-black/87">{policy.account.facilityCount}</div>
+                    <div className="text-sm font-medium mt-0.5 text-black/87 tabular-nums">{policy.account.facilityCount}</div>
                   </div>
                 </div>
               </div>
@@ -97,11 +97,11 @@ const PolicyDetail = ({ policy, isLoading, isError, error, onRetry, onEdit }: Po
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
                     <div className="text-[11px] uppercase tracking-wider text-black/60">Premium</div>
-                    <div className="text-lg font-semibold tracking-tight mt-0.5">{formatCurrencyAbbr(policy.financials.premium)}</div>
+                    <div className="text-lg font-semibold tracking-tight mt-0.5 tabular-nums">{formatCurrencyAbbr(policy.financials.premium)}</div>
                   </div>
                   <div>
                     <div className="text-[11px] uppercase tracking-wider text-black/60">Claims</div>
-                    <div className="text-lg font-semibold tracking-tight mt-0.5">{formatCurrencyAbbr(policy.financials.claimsTotal)}</div>
+                    <div className="text-lg font-semibold tracking-tight mt-0.5 tabular-nums">{formatCurrencyAbbr(policy.financials.claimsTotal)}</div>
                   </div>
                 </div>
                 <div>
@@ -111,7 +111,7 @@ const PolicyDetail = ({ policy, isLoading, isError, error, onRetry, onEdit }: Po
                       <span className={`text-[11px] font-semibold tracking-wide px-2 h-[22px] inline-flex items-center rounded-full ${RISK_COLORS[riskLevel]}`}>
                         {riskLevel}
                       </span>
-                      <span className="text-xs text-black/60">{policy.financials.reimbursementRisk.toFixed(2)}</span>
+                      <span className="text-xs text-black/60 tabular-nums">{policy.financials.reimbursementRisk.toFixed(2)}</span>
                     </div>
                   </div>
                   <div className="h-1.5 w-full rounded-full bg-black/6">
@@ -142,15 +142,15 @@ const PolicyDetail = ({ policy, isLoading, isError, error, onRetry, onEdit }: Po
                 </div>
                 <div className="space-y-4">
                   {policy.compliance.pendingReviews.map((review, idx) => (
-                    <div key={idx} className="flex items-start justify-between">
+                    <div key={idx} className="flex items-center justify-between">
                       <div>
                         <div className="text-[13px] font-medium text-black/87">{review.type}</div>
-                        <div className="text-xs text-black/60 mt-0.5">
+                        <div className="text-xs text-black/60 mt-0.5 tabular-nums">
                           Due {formatDateShort(review.dueDate)}
                         </div>
                       </div>
-                      <span className={`text-xs font-medium flex items-center gap-1 ${SEVERITY_COLORS[review.severity]}`}>
-                        <span>●</span>
+                      <span className={`text-[10px] font-semibold px-[7px] h-5 inline-flex items-center rounded-full ${SEVERITY_COLORS[review.severity]}`}>
+                        <span className="mr-1 opacity-85">●</span>
                         {review.severity}
                       </span>
                     </div>

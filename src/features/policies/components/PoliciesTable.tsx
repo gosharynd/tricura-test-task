@@ -190,9 +190,9 @@ const PoliciesTable = ({
 
       {/* Pagination */}
       {hasData && (
-        <div className="flex items-center justify-between text-xs p-4 border-t border-black/12">
+        <div className="flex items-center justify-end gap-4 text-xs p-4 border-t border-black/12">
           <div className="flex items-center gap-2">
-            <span className="text-black/60">Rows per page</span>
+            <span className="text-black/60">Rows per page:</span>
             <Select value={String(limit)} onValueChange={handleLimitChange}>
               <SelectTrigger size="sm">
                 <SelectValue />
@@ -205,7 +205,7 @@ const PoliciesTable = ({
             </Select>
           </div>
 
-          <span className="text-black/60">{paginationLabel}</span>
+          <span className="text-black/60 tabular-nums">{paginationLabel}</span>
 
           <div className="flex items-center gap-1">
             <Button

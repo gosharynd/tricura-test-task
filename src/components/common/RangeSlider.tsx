@@ -71,10 +71,10 @@ const RangeSlider = memo(({ label, min, max, step = 1, value, onChange, formatLa
 
   return (
     <div className="space-y-3">
-      <span className="text-xs font-semibold uppercase tracking-wide text-black/60">{label}</span>
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <label className="text-xs text-black/60">Min</label>
+      <h5 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-black/60 pb-1.5 border-b border-black/6 mb-2.5">{label}</h5>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <label className="text-[11px] text-black/60">Min</label>
           <Input
             type="text"
             inputMode="decimal"
@@ -84,8 +84,8 @@ const RangeSlider = memo(({ label, min, max, step = 1, value, onChange, formatLa
             placeholder={minPlaceholder}
           />
         </div>
-        <div className="flex-1">
-          <label className="text-xs text-black/60">Max</label>
+        <div className="space-y-1">
+          <label className="text-[11px] text-black/60">Max</label>
           <Input
             type="text"
             inputMode="decimal"
@@ -97,7 +97,7 @@ const RangeSlider = memo(({ label, min, max, step = 1, value, onChange, formatLa
         </div>
       </div>
       <Slider min={min} max={max} step={step} value={sliderValue} onValueChange={handleSliderChange} />
-      <div className="flex justify-between text-xs text-black/60">
+      <div className="flex justify-between text-[11px] text-black/60 tabular-nums">
         <span>{minLabel}</span>
         <span>{maxLabel}</span>
       </div>

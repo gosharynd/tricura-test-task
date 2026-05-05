@@ -24,6 +24,7 @@ type PolicyFormModalProps = {
   mode: 'create' | 'edit'
   policy?: Policy | null
   onSubmit: (data: PolicyFormData) => void
+  onDelete?: () => void
   isPending: boolean
 }
 
@@ -45,7 +46,7 @@ const policyToFormData = (policy: Policy): PolicyFormData => ({
   })),
 })
 
-const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, isPending }: PolicyFormModalProps) => {
+const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, onDelete, isPending }: PolicyFormModalProps) => {
   const {
     register, handleSubmit, control, reset, setValue, watch,
     formState: { errors },
@@ -92,6 +93,9 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, isPending
       <DialogContent className="max-w-[720px] max-h-[85vh] overflow-y-auto scrollbar-hide">
         <DialogHeader>
           <DialogTitle>{mode === 'create' ? 'Create New Policy' : 'Edit Policy'}</DialogTitle>
+          {mode === 'edit' && policy && (
+            <p className="text-[13px] text-black/60">{policy.id}</p>
+          )}
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
@@ -99,30 +103,30 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, isPending
           <div className="space-y-3">
             <h4 className="text-xs font-semibold uppercase tracking-wide text-black/60">Account</h4>
             <div className="grid grid-cols-3 gap-4">
-              <div className="col-span-2 space-y-1">
+              <div className="space-y-1">
                 <label className="text-sm font-medium">Account Name</label>
                 <Input {...register('accountName')} placeholder="Account name" />
                 {errors.accountName && <p className="text-xs text-red-500">{errors.accountName.message}</p>}
               </div>
               <div className="space-y-1">
-                <label className="text-sm font-medium">Facilities</label>
+                <label className="text-sm font-medium">Region</label>
+                <Select value={watch('region')} onValueChange={handleRegionChange}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select region" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {REGIONS.map((r) => (
+                      <SelectItem key={r} value={r}>{r}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.region && <p className="text-xs text-red-500">{errors.region.message}</p>}
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium">Facility Count</label>
                 <Input type="number" {...register('facilityCount', { valueAsNumber: true })} />
                 {errors.facilityCount && <p className="text-xs text-red-500">{errors.facilityCount.message}</p>}
               </div>
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Region</label>
-              <Select value={watch('region')} onValueChange={handleRegionChange}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select region" />
-                </SelectTrigger>
-                <SelectContent>
-                  {REGIONS.map((r) => (
-                    <SelectItem key={r} value={r}>{r}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.region && <p className="text-xs text-red-500">{errors.region.message}</p>}
             </div>
           </div>
 
@@ -164,9 +168,7 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, isPending
             </div>
           </div>
 
-          <Separator />
-
-          {/* Reimbursement Risk */}
+          {/* Reimbursement Risk (under Financials) */}
           <div className="space-y-3">
             <h4 className="text-xs font-semibold uppercase tracking-wide text-black/60">Reimbursement Risk</h4>
             <div className="flex items-center gap-4">
@@ -208,9 +210,7 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, isPending
             </div>
           </div>
 
-          <Separator />
-
-          {/* Pending Reviews */}
+          {/* Pending Reviews (under Compliance) */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-semibold uppercase tracking-wide text-black/60">Pending Reviews</h4>
@@ -229,12 +229,17 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, isPending
             ))}
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleCancel} disabled={isPending} className="uppercase text-xs font-semibold tracking-wide">
+          <DialogFooter className="flex items-center">
+            {mode === 'edit' && onDelete && (
+              <Button type="button" variant="ghost" onClick={onDelete} disabled={isPending} className="mr-auto uppercase text-xs font-semibold tracking-wide text-black/60 hover:text-[#d32f2f] hover:bg-[#fdecea]">
+                Delete policy
+              </Button>
+            )}
+            <Button type="button" variant="ghost" onClick={handleCancel} disabled={isPending} className="uppercase text-xs font-semibold tracking-wide">
               Cancel
             </Button>
             <Button type="submit" disabled={isPending} className="bg-[#1976d2] hover:bg-[#1565c0] text-white uppercase text-xs font-semibold tracking-wide">
-              {isPending ? 'Saving...' : mode === 'create' ? 'Create Policy' : 'Save Changes'}
+              {isPending ? 'Saving...' : mode === 'create' ? 'Create policy' : 'Save changes'}
             </Button>
           </DialogFooter>
         </form>
@@ -269,8 +274,8 @@ const PendingReviewField = memo(({ index, watch, setValue, onRemove }: PendingRe
   }, [onRemove, index])
 
   return (
-    <div className="flex items-center gap-3">
-      <div className="flex-1">
+    <div className="flex items-center gap-2">
+      <div className="flex-[2]">
         <Select value={watch(`pendingReviews.${index}.type`)} onValueChange={handleTypeChange}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Review type" />
@@ -282,10 +287,10 @@ const PendingReviewField = memo(({ index, watch, setValue, onRemove }: PendingRe
           </SelectContent>
         </Select>
       </div>
-      <div className="w-[160px] shrink-0">
+      <div className="flex-1">
         <DateInput value={watch(`pendingReviews.${index}.dueDate`) || undefined} onChange={handleDueDateChange} placeholder="Due date" />
       </div>
-      <div className="w-[120px] shrink-0">
+      <div className="flex-1">
         <Select value={watch(`pendingReviews.${index}.severity`)} onValueChange={handleSeverityChange}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Severity" />
