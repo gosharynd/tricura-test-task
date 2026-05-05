@@ -1,5 +1,5 @@
 import { useEffect, useCallback, memo } from 'react'
-import { useForm, useFieldArray, useWatch, type Control } from 'react-hook-form'
+import { useForm, useFieldArray, useWatch, type Control, type FieldErrors } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Trash2 } from 'lucide-react'
 import {
@@ -233,6 +233,7 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, onDelete,
                 control={control}
                 setValue={setValue}
                 onRemove={remove}
+                errors={errors}
               />
             ))}
           </div>
@@ -266,9 +267,10 @@ type PendingReviewFieldProps = {
   control: Control<PolicyFormData>
   setValue: ReturnType<typeof useForm<PolicyFormData>>['setValue']
   onRemove: (index: number) => void
+  errors: FieldErrors<PolicyFormData>
 }
 
-const PendingReviewField = memo(({ index, control, setValue, onRemove }: PendingReviewFieldProps) => {
+const PendingReviewField = memo(({ index, control, setValue, onRemove, errors }: PendingReviewFieldProps) => {
   const review = useWatch({ control, name: `pendingReviews.${index}` })
 
   const handleTypeChange = useCallback((v: string) => {
@@ -290,7 +292,7 @@ const PendingReviewField = memo(({ index, control, setValue, onRemove }: Pending
   return (
     <div className="flex items-center gap-2">
       <div className="flex-[2]">
-        <FloatingInput legend="Type">
+        <FloatingInput legend="Type" error={errors.pendingReviews?.[index]?.type?.message}>
           <Select value={review.type} onValueChange={handleTypeChange}>
             <SelectTrigger className="w-full w-full !h-auto border-0 p-0 shadow-none focus:ring-0 text-[13px]">
               <SelectValue placeholder="Review type" />
@@ -304,12 +306,12 @@ const PendingReviewField = memo(({ index, control, setValue, onRemove }: Pending
         </FloatingInput>
       </div>
       <div className="flex-1">
-        <FloatingInput legend="Due date">
+        <FloatingInput legend="Due date" error={errors.pendingReviews?.[index]?.dueDate?.message}>
           <DateInput value={review.dueDate || undefined} onChange={handleDueDateChange} placeholder="Due date" variant="inline" />
         </FloatingInput>
       </div>
       <div className="flex-1">
-        <FloatingInput legend="Severity">
+        <FloatingInput legend="Severity" error={errors.pendingReviews?.[index]?.severity?.message}>
           <Select value={review.severity} onValueChange={handleSeverityChange}>
             <SelectTrigger className="w-full w-full !h-auto border-0 p-0 shadow-none focus:ring-0 text-[13px]">
               <SelectValue placeholder="Severity" />

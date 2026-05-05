@@ -8,6 +8,7 @@ import FilterChips from './FilterChips'
 import PoliciesTable from './PoliciesTable'
 import FiltersModal from './FiltersModal'
 import PolicyFormModal from './PolicyFormModal'
+import ConfirmDialog from '@/components/common/ConfirmDialog'
 import { usePolicyFilters } from '../filters/hook'
 import { usePolicies, usePolicy, useCreatePolicy, useUpdatePolicy, useDeletePolicy } from '../api/queries'
 import type { ListPoliciesParams } from '../api/api'
@@ -25,14 +26,16 @@ const PoliciesPage = () => {
   const { filters, setFilters, updateFilter, resetFilters, activeFilterCount, page, limit, setPage, setLimit } = usePolicyFilters()
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [formModal, setFormModal] = useState<FormModalState>({ open: false, mode: 'create' })
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
 
   const debouncedSearch = useDebounce(filters.search, 300)
 
-  // Build API params — if >1 region selected, omit from API (filter client-side)
+  // Build API params — if >1 region selected, omit region from API and fetch all records for client-side filtering
+  const isMultiRegion = (filters.region?.length ?? 0) > 1
   const apiParams = useMemo((): ListPoliciesParams => {
     const params: ListPoliciesParams = {
-      page,
-      limit,
+      page: isMultiRegion ? 1 : page,
+      limit: isMultiRegion ? 100 : limit,
       search: debouncedSearch || undefined,
       effectiveDateFrom: filters.effectiveDateFrom,
       effectiveDateTo: filters.effectiveDateTo,
@@ -47,22 +50,26 @@ const PoliciesPage = () => {
       params.region = filters.region[0]
     }
     return params
-  }, [filters, debouncedSearch, page, limit])
+  }, [filters, debouncedSearch, page, limit, isMultiRegion])
 
   const { data: policiesData, isLoading, isError, error, refetch } = usePolicies(apiParams)
 
-  // Client-side region filtering when multiple regions selected
+  // Client-side region filtering + pagination when multiple regions selected
   const filteredData = useMemo(() => {
     if (!policiesData) return undefined
     if (!filters.region || filters.region.length <= 1) return policiesData
     const regionSet = new Set(filters.region)
-    const filtered = policiesData.data.filter((p) => regionSet.has(p.region))
+    const allFiltered = policiesData.data.filter((p) => regionSet.has(p.region))
+    const total = allFiltered.length
+    const totalPages = Math.ceil(total / limit) || 1
+    const start = (page - 1) * limit
+    const paged = allFiltered.slice(start, start + limit)
     return {
       ...policiesData,
-      data: filtered,
-      pagination: { ...policiesData.pagination, total: filtered.length, totalPages: Math.ceil(filtered.length / limit) || 1 },
+      data: paged,
+      pagination: { page, limit, total, totalPages },
     }
-  }, [policiesData, filters.region, limit])
+  }, [policiesData, filters.region, limit, page])
 
   // Edit policy data
   const editPolicyId = useMemo(
@@ -107,10 +114,15 @@ const PoliciesPage = () => {
     setFiltersOpen(true)
   }, [])
 
-  const handleFormDelete = useCallback(() => {
+  const handleFormDeleteClick = useCallback(() => {
+    setDeleteConfirmOpen(true)
+  }, [])
+
+  const handleConfirmFormDelete = useCallback(() => {
     if (!formModal.policyId) return
     deleteMutate(formModal.policyId, {
       onSuccess: () => {
+        setDeleteConfirmOpen(false)
         setFormModal({ open: false, mode: 'create' })
         toast.success('Policy deleted successfully')
       },
@@ -119,6 +131,10 @@ const PoliciesPage = () => {
       },
     })
   }, [formModal.policyId, deleteMutate])
+
+  const handleDeleteConfirmOpenChange = useCallback((open: boolean) => {
+    setDeleteConfirmOpen(open)
+  }, [])
 
   const handleFormSubmit = useCallback((data: PolicyFormData) => {
     if (formModal.mode === 'create') {
@@ -238,8 +254,17 @@ const PoliciesPage = () => {
         mode={formModal.mode}
         policy={editPolicy}
         onSubmit={handleFormSubmit}
-        onDelete={handleFormDelete}
+        onDelete={handleFormDeleteClick}
         isPending={createPending || updatePending || deletePending}
+      />
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={handleDeleteConfirmOpenChange}
+        title="Delete Policy"
+        description="Are you sure you want to delete this policy? This action cannot be undone."
+        confirmLabel="Delete"
+        onConfirm={handleConfirmFormDelete}
+        isPending={deletePending}
       />
     </div>
   )

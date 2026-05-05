@@ -26,6 +26,7 @@ const PolicyRow = memo(({ policy, isExpanded, onToggle }: PolicyRowProps) => {
       aria-expanded={isExpanded}
       role="button"
       tabIndex={0}
+      data-policy-id={policy.id}
       onClick={onToggle}
       onKeyDown={handleKeyDown}
     >

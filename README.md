@@ -95,17 +95,25 @@ To regenerate TypeScript types from the backend OpenAPI schema:
 pnpm codegen:api
 ```
 
+## Assumptions
+
+- **Risk level** computed on frontend from `reimbursementRisk` (High ≥ 0.70, Medium ≥ 0.40, Low < 0.40) — API doesn't return it
+- **Multi-region filtering** is client-side — API accepts a single `region` value, so when multiple are selected the app fetches all and filters locally. Fine at 100 policies, wouldn't scale
+- **Days until renewal** is editable in the form but in production should be server-derived from `effectiveDate` + term
+
 ## Tradeoffs
 
-- No virtualization — max 20 rows per page, not needed
-- No global state management — TanStack Query + URL params cover all cases
-- Table sorting is client-side on current page data (API doesn't support sort params)
-- Days until renewal is user-editable (could be computed from effective date)
+- **Filters in URL** — all filter/pagination state serialized to search params for shareable links and back/forward support. Filter modal uses local draft state and only commits on "Apply" to avoid intermediate API calls
+- **No sorting** — API has no sort params, and client-side sorting per page is misleading (page 1 sorted ≠ global top-N). Left out intentionally despite mock showing a Risk sort indicator
+- **Detail fetch on expand** — each row click fires `GET /policies/:id` because the list endpoint omits compliance/reviews. Prefetching all 20 details would waste requests for data users rarely inspect
+- **No optimistic updates** — mutations wait for server response. Optimistic delete/update would be snappier but adds rollback complexity, especially for create (server-generated ID)
+- **Frontend-only validation** — Zod validates structure and required fields; domain rules (e.g. "effective date in the future") are left to the backend
 
-## What I'd improve with more time
+## What I'd improve
 
-- Server-side sorting via API enhancement
-- Unit tests for filter serialization layer
-- E2E tests for full CRUD workflow
-- Better mobile responsiveness
-- Optimistic updates for mutations
+- **Server-side sorting** with `sortBy`/`sortDir` query params and clickable column headers
+- **Responsive table** — hide lower-priority columns at < 1280px, show them in expanded detail
+- **Optimistic mutations** — especially delete (remove row instantly, restore on error)
+- **Component decomposition** — `PoliciesPage.tsx` (~250 lines) orchestrates too much: search, filters, table, two modals. I'd extract filter toolbar, modal state, and mutation handlers into dedicated hooks (`useModalState`, `usePolicyMutations`). Same for `PoliciesTable.tsx` — pagination, row expansion, keyboard nav, and delete confirmation are distinct concerns that should be separate hooks
+- **Tests** — unit tests for filter serialization roundtrip and risk tier boundaries; E2E tests for full CRUD flow
+- **Accessibility** — screen reader audit, ARIA live regions for toasts, `beforeunload` warning on unsaved form changes

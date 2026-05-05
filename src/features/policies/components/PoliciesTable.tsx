@@ -45,10 +45,19 @@ const PoliciesTable = ({
   const { mutate: deleteMutate, isPending: deletePending } = useDeletePolicy()
 
   const tableRef = useRef<HTMLDivElement>(null)
+  const pendingExpandRef = useRef<'first' | 'last' | null>(null)
 
   const handleToggle = useCallback((id: string) => {
     setExpandedId((prev) => (prev === id ? null : id))
   }, [])
+
+  // After page change via keyboard nav, expand the first or last row
+  useEffect(() => {
+    if (!pendingExpandRef.current || !data || data.data.length === 0) return
+    const ids = data.data.map((p) => p.id)
+    setExpandedId(pendingExpandRef.current === 'first' ? ids[0] : ids[ids.length - 1])
+    pendingExpandRef.current = null
+  }, [data])
 
   // Focus the table container when a row expands so ↑/↓ work immediately
   useEffect(() => {
@@ -57,7 +66,18 @@ const PoliciesTable = ({
     }
   }, [expandedId])
 
-  // ↑/↓ keyboard navigation — move expanded row through the list
+  // Scroll the expanded row into view
+  useEffect(() => {
+    if (!expandedId) return
+    // Small delay to let the detail panel render before scrolling
+    const timer = setTimeout(() => {
+      const row = tableRef.current?.querySelector(`[data-policy-id="${expandedId}"]`)
+      row?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 50)
+    return () => clearTimeout(timer)
+  }, [expandedId])
+
+  // ↑/↓ keyboard navigation — move expanded row through the list, cross pages at boundaries
   const handleTableKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (!data || data.data.length === 0 || !expandedId) return
     if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
@@ -67,14 +87,24 @@ const PoliciesTable = ({
     const currentIdx = ids.indexOf(expandedId)
     if (currentIdx === -1) return
 
-    const nextIdx = e.key === 'ArrowDown'
-      ? Math.min(currentIdx + 1, ids.length - 1)
-      : Math.max(currentIdx - 1, 0)
-
-    if (nextIdx !== currentIdx) {
-      setExpandedId(ids[nextIdx])
+    if (e.key === 'ArrowDown') {
+      if (currentIdx < ids.length - 1) {
+        setExpandedId(ids[currentIdx + 1])
+      } else if (page < (data.pagination?.totalPages ?? 1)) {
+        // At last row — go to next page, expand first row
+        pendingExpandRef.current = 'first'
+        onPageChange(page + 1)
+      }
+    } else {
+      if (currentIdx > 0) {
+        setExpandedId(ids[currentIdx - 1])
+      } else if (page > 1) {
+        // At first row — go to previous page, expand last row
+        pendingExpandRef.current = 'last'
+        onPageChange(page - 1)
+      }
     }
-  }, [data, expandedId])
+  }, [data, expandedId, page, onPageChange])
 
   const handleDelete = useCallback((id: string) => {
     setDeleteId(id)
