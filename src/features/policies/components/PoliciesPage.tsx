@@ -1,7 +1,9 @@
 import { useState, useCallback, useMemo } from 'react'
 import { Search, SlidersHorizontal } from 'lucide-react'
+import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { useDebounce } from '@/hooks/useDebounce'
 import FilterChips from './FilterChips'
 import PoliciesTable from './PoliciesTable'
 import FiltersModal from './FiltersModal'
@@ -24,12 +26,14 @@ const PoliciesPage = () => {
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [formModal, setFormModal] = useState<FormModalState>({ open: false, mode: 'create' })
 
+  const debouncedSearch = useDebounce(filters.search, 300)
+
   // Build API params — if >1 region selected, omit from API (filter client-side)
   const apiParams = useMemo((): ListPoliciesParams => {
     const params: ListPoliciesParams = {
       page,
       limit,
-      search: filters.search || undefined,
+      search: debouncedSearch || undefined,
       effectiveDateFrom: filters.effectiveDateFrom,
       effectiveDateTo: filters.effectiveDateTo,
       premiumMin: filters.premiumMin,
@@ -43,7 +47,7 @@ const PoliciesPage = () => {
       params.region = filters.region[0]
     }
     return params
-  }, [filters, page, limit])
+  }, [filters, debouncedSearch, page, limit])
 
   const { data: policiesData, isLoading, isError, error, refetch } = usePolicies(apiParams)
 
@@ -61,7 +65,10 @@ const PoliciesPage = () => {
   }, [policiesData, filters.region, limit])
 
   // Edit policy data
-  const editPolicyId = formModal.open && formModal.mode === 'edit' ? formModal.policyId ?? null : null
+  const editPolicyId = useMemo(
+    () => (formModal.open && formModal.mode === 'edit' ? formModal.policyId ?? null : null),
+    [formModal.open, formModal.mode, formModal.policyId],
+  )
   const { data: editPolicy } = usePolicy(editPolicyId)
 
   const { mutate: createMutate, isPending: createPending } = useCreatePolicy()
@@ -91,6 +98,10 @@ const PoliciesPage = () => {
     setFormModal((prev) => ({ ...prev, open }))
   }, [])
 
+  const handleOpenFilters = useCallback(() => {
+    setFiltersOpen(true)
+  }, [])
+
   const handleFormSubmit = useCallback((data: PolicyFormData) => {
     if (formModal.mode === 'create') {
       const input: CreatePolicyInput = {
@@ -103,7 +114,15 @@ const PoliciesPage = () => {
           pendingReviews: data.pendingReviews.map((r) => ({ type: r.type as ReviewType, dueDate: r.dueDate, severity: r.severity as Severity })),
         },
       }
-      createMutate(input, { onSuccess: () => setFormModal({ open: false, mode: 'create' }) })
+      createMutate(input, {
+        onSuccess: () => {
+          setFormModal({ open: false, mode: 'create' })
+          toast.success('Policy created successfully')
+        },
+        onError: (err) => {
+          toast.error('Failed to create policy', { description: err.message })
+        },
+      })
     } else if (formModal.policyId) {
       const input: UpdatePolicyInput = {
         account: { name: data.accountName, region: data.region as Region, facilityCount: data.facilityCount },
@@ -115,35 +134,53 @@ const PoliciesPage = () => {
           pendingReviews: data.pendingReviews.map((r) => ({ type: r.type as ReviewType, dueDate: r.dueDate, severity: r.severity as Severity })),
         },
       }
-      updateMutate({ id: formModal.policyId, input }, { onSuccess: () => setFormModal({ open: false, mode: 'create' }) })
+      updateMutate({ id: formModal.policyId, input }, {
+        onSuccess: () => {
+          setFormModal({ open: false, mode: 'create' })
+          toast.success('Policy updated successfully')
+        },
+        onError: (err) => {
+          toast.error('Failed to update policy', { description: err.message })
+        },
+      })
     }
   }, [formModal, createMutate, updateMutate])
 
-  return (
-    <div className="p-6 space-y-4 max-w-[960px] mx-auto">
-      {/* Search + Filter bar */}
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search accounts by name..."
-            value={filters.search ?? ''}
-            onChange={handleSearchChange}
-            className="pl-9"
-          />
-        </div>
-        <Button
-          variant="outline"
-          onClick={() => setFiltersOpen(true)}
-          className={activeFilterCount > 0 ? 'text-blue-600 border-blue-600' : ''}
-        >
-          <SlidersHorizontal className="h-4 w-4 mr-2" />
-          {activeFilterCount > 0 ? `FILTERS · ${activeFilterCount}` : 'FILTERS'}
-        </Button>
-      </div>
+  const filterButtonClass = useMemo(
+    () => `h-[30px] text-xs font-medium uppercase tracking-wide rounded ${activeFilterCount > 0 ? 'text-[#1976d2] border-[#1976d2]/50' : ''}`,
+    [activeFilterCount],
+  )
 
-      {/* Filter chips */}
-      <FilterChips filters={filters} onRemove={handleRemoveFilter} onClearAll={resetFilters} />
+  const filterButtonLabel = useMemo(
+    () => activeFilterCount > 0 ? `FILTERS · ${activeFilterCount}` : 'FILTERS',
+    [activeFilterCount],
+  )
+
+  return (
+    <div className="p-6 space-y-4">
+      {/* Filter bar card */}
+      <div className="bg-white border border-black/12 rounded-lg px-4 py-3 space-y-2">
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="relative w-[260px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black/40" />
+            <Input
+              placeholder="Search accounts by name..."
+              value={filters.search ?? ''}
+              onChange={handleSearchChange}
+              className="pl-9 h-[36px] text-[13px] border-black/12 rounded"
+            />
+          </div>
+          <Button
+            variant="outline"
+            onClick={handleOpenFilters}
+            className={filterButtonClass}
+          >
+            <SlidersHorizontal className="h-3.5 w-3.5 mr-1.5" />
+            {filterButtonLabel}
+          </Button>
+          <FilterChips filters={filters} onRemove={handleRemoveFilter} onClearAll={resetFilters} />
+        </div>
+      </div>
 
       {/* Table */}
       <PoliciesTable

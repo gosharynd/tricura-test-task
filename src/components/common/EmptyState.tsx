@@ -17,8 +17,8 @@ const EmptyState = ({ title, description, actions }: EmptyStateProps) => {
       <div className="rounded-full bg-muted p-3 mb-4">
         <Search className="h-6 w-6 text-muted-foreground" />
       </div>
-      <h3 className="text-lg font-semibold mb-1">{title}</h3>
-      <p className="text-sm text-muted-foreground mb-6">{description}</p>
+      <h3 className="text-sm font-semibold text-black/87 mb-1">{title}</h3>
+      <p className="text-[13px] text-black/60 mb-6">{description}</p>
       {actions && (
         <div className="flex gap-3">
           {actions.map((action) => (

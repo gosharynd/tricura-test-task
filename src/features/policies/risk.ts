@@ -1,4 +1,4 @@
-import type { RiskLevel } from './types'
+import type { RiskLevel, Severity } from './types'
 
 export const computeRiskLevel = (reimbursementRisk: number): RiskLevel => {
   if (reimbursementRisk >= 0.7) return 'High'
@@ -7,12 +7,12 @@ export const computeRiskLevel = (reimbursementRisk: number): RiskLevel => {
 }
 
 export const RISK_COLORS: Record<RiskLevel, string> = {
-  High: 'text-red-600 bg-red-50',
-  Medium: 'text-orange-600 bg-orange-50',
-  Low: 'text-green-600 bg-green-50',
+  High: 'text-[#d32f2f] bg-[#fdece2]',
+  Medium: 'text-[#ed6c02] bg-[#fff4e5]',
+  Low: 'text-[#2e7d32] bg-[#e8f5e9]',
 }
 
-export const SEVERITY_COLORS: Record<string, string> = {
+export const SEVERITY_COLORS: Record<Severity, string> = {
   critical: 'text-red-600',
   high: 'text-orange-600',
   medium: 'text-yellow-600',

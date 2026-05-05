@@ -1,14 +1,15 @@
 import { z } from 'zod'
+import { REGIONS, SEVERITIES, REVIEW_TYPES } from '../constants'
 
 const PendingReviewSchema = z.object({
-  type: z.string().min(1, 'Review type is required'),
+  type: z.enum(REVIEW_TYPES as [string, ...string[]], { message: 'Review type is required' }),
   dueDate: z.string().min(1, 'Due date is required'),
-  severity: z.string().min(1, 'Severity is required'),
+  severity: z.enum(SEVERITIES as [string, ...string[]], { message: 'Severity is required' }),
 })
 
 export const PolicyFormSchema = z.object({
   accountName: z.string().min(1, 'Account name is required'),
-  region: z.string().min(1, 'Region is required'),
+  region: z.enum(REGIONS as [string, ...string[]], { message: 'Region is required' }),
   facilityCount: z.number().int().min(1, 'At least 1 facility'),
   effectiveDate: z.string().min(1, 'Effective date is required'),
   daysUntilRenewal: z.number().int().min(0),
@@ -24,7 +25,7 @@ export type PolicyFormData = z.infer<typeof PolicyFormSchema>
 
 export const DEFAULT_FORM_VALUES: PolicyFormData = {
   accountName: '',
-  region: '',
+  region: '' as PolicyFormData['region'],
   facilityCount: 1,
   effectiveDate: '',
   daysUntilRenewal: 0,

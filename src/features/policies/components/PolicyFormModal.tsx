@@ -1,18 +1,19 @@
-import { useEffect, useCallback } from 'react'
+import { useEffect, useCallback, memo } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Plus, Trash2 } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Slider } from '@/components/ui/slider'
+import DateInput from '@/components/common/DateInput'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { REGIONS, SEVERITIES, REVIEW_TYPES } from '../constants'
+import { REGIONS, SEVERITIES, REVIEW_TYPES, RISK_RANGE } from '../constants'
 import { PolicyFormSchema, DEFAULT_FORM_VALUES } from './PolicyFormModal.schema'
 import type { PolicyFormData } from './PolicyFormModal.schema'
 import type { Policy } from '../types'
@@ -66,25 +67,37 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, isPending
 
   const riskValue = watch('reimbursementRisk')
 
-  const handleFormSubmit = useCallback((data: PolicyFormData) => {
-    onSubmit(data)
-  }, [onSubmit])
-
   const handleAddReview = useCallback(() => {
     append({ type: '', dueDate: '', severity: '' })
   }, [append])
 
+  const handleRegionChange = useCallback((v: string) => {
+    setValue('region', v, { shouldValidate: true })
+  }, [setValue])
+
+  const handleRiskSliderChange = useCallback(([v]: number[]) => {
+    setValue('reimbursementRisk', v, { shouldValidate: true })
+  }, [setValue])
+
+  const handleEffectiveDateChange = useCallback((value: string | undefined) => {
+    setValue('effectiveDate', value ?? '', { shouldValidate: true })
+  }, [setValue])
+
+  const handleCancel = useCallback(() => {
+    onOpenChange(false)
+  }, [onOpenChange])
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-[720px] max-h-[85vh] overflow-y-auto scrollbar-hide">
         <DialogHeader>
           <DialogTitle>{mode === 'create' ? 'Create New Policy' : 'Edit Policy'}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6 py-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
           {/* Account */}
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Account</h4>
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-black/60">Account</h4>
             <div className="grid grid-cols-3 gap-4">
               <div className="col-span-2 space-y-1">
                 <label className="text-sm font-medium">Account Name</label>
@@ -99,10 +112,7 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, isPending
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium">Region</label>
-              <Select
-                value={watch('region')}
-                onValueChange={(v) => setValue('region', v, { shouldValidate: true })}
-              >
+              <Select value={watch('region')} onValueChange={handleRegionChange}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select region" />
                 </SelectTrigger>
@@ -120,11 +130,11 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, isPending
 
           {/* Renewal */}
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Renewal</h4>
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-black/60">Renewal</h4>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
                 <label className="text-sm font-medium">Effective Date</label>
-                <Input type="date" {...register('effectiveDate')} />
+                <DateInput value={watch('effectiveDate') || undefined} onChange={handleEffectiveDateChange} />
                 {errors.effectiveDate && <p className="text-xs text-red-500">{errors.effectiveDate.message}</p>}
               </div>
               <div className="space-y-1">
@@ -139,7 +149,7 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, isPending
 
           {/* Financials */}
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Financials</h4>
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-black/60">Financials</h4>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
                 <label className="text-sm font-medium">Premium ($)</label>
@@ -158,23 +168,23 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, isPending
 
           {/* Reimbursement Risk */}
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Reimbursement Risk</h4>
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-black/60">Reimbursement Risk</h4>
             <div className="flex items-center gap-4">
               <Input
                 type="number"
-                step="0.01"
-                min="0"
-                max="1"
+                step={RISK_RANGE.step}
+                min={RISK_RANGE.min}
+                max={RISK_RANGE.max}
                 className="w-24"
                 {...register('reimbursementRisk', { valueAsNumber: true })}
               />
               <div className="flex-1">
                 <Slider
-                  min={0}
-                  max={1}
-                  step={0.01}
+                  min={RISK_RANGE.min}
+                  max={RISK_RANGE.max}
+                  step={RISK_RANGE.step}
                   value={[riskValue]}
-                  onValueChange={([v]) => setValue('reimbursementRisk', v, { shouldValidate: true })}
+                  onValueChange={handleRiskSliderChange}
                 />
               </div>
             </div>
@@ -185,7 +195,7 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, isPending
 
           {/* Compliance */}
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Compliance</h4>
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-black/60">Compliance</h4>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
                 <label className="text-sm font-medium">Missing Documents</label>
@@ -203,57 +213,27 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, isPending
           {/* Pending Reviews */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Pending Reviews</h4>
-              <Button type="button" variant="outline" size="sm" onClick={handleAddReview}>
-                <Plus className="h-4 w-4 mr-1" />
-                Add Review
-              </Button>
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-black/60">Pending Reviews</h4>
+              <button type="button" onClick={handleAddReview} className="text-xs font-semibold uppercase tracking-wide text-[#1976d2] hover:text-[#1565c0]">
+                + Add Review
+              </button>
             </div>
             {fields.map((field, idx) => (
-              <div key={field.id} className="flex items-start gap-3 rounded-md border p-3">
-                <div className="flex-1 space-y-2">
-                  <Select
-                    value={watch(`pendingReviews.${idx}.type`)}
-                    onValueChange={(v) => setValue(`pendingReviews.${idx}.type`, v, { shouldValidate: true })}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Review type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {REVIEW_TYPES.map((t) => (
-                        <SelectItem key={t} value={t}>{t}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input type="date" {...register(`pendingReviews.${idx}.dueDate`)} />
-                    <Select
-                      value={watch(`pendingReviews.${idx}.severity`)}
-                      onValueChange={(v) => setValue(`pendingReviews.${idx}.severity`, v, { shouldValidate: true })}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Severity" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {SEVERITIES.map((s) => (
-                          <SelectItem key={s} value={s}>{s}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <Button type="button" variant="ghost" size="sm" onClick={() => remove(idx)}>
-                  <Trash2 className="h-4 w-4 text-muted-foreground" />
-                </Button>
-              </div>
+              <PendingReviewField
+                key={field.id}
+                index={idx}
+                watch={watch}
+                setValue={setValue}
+                onRemove={remove}
+              />
             ))}
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
+            <Button type="button" variant="outline" onClick={handleCancel} disabled={isPending} className="uppercase text-xs font-semibold tracking-wide">
               Cancel
             </Button>
-            <Button type="submit" disabled={isPending}>
+            <Button type="submit" disabled={isPending} className="bg-[#1976d2] hover:bg-[#1565c0] text-white uppercase text-xs font-semibold tracking-wide">
               {isPending ? 'Saving...' : mode === 'create' ? 'Create Policy' : 'Save Changes'}
             </Button>
           </DialogFooter>
@@ -262,5 +242,66 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, isPending
     </Dialog>
   )
 }
+
+// Extracted to avoid inline arrows in .map()
+type PendingReviewFieldProps = {
+  index: number
+  watch: ReturnType<typeof useForm<PolicyFormData>>['watch']
+  setValue: ReturnType<typeof useForm<PolicyFormData>>['setValue']
+  onRemove: (index: number) => void
+}
+
+const PendingReviewField = memo(({ index, watch, setValue, onRemove }: PendingReviewFieldProps) => {
+  const handleTypeChange = useCallback((v: string) => {
+    setValue(`pendingReviews.${index}.type`, v, { shouldValidate: true })
+  }, [setValue, index])
+
+  const handleSeverityChange = useCallback((v: string) => {
+    setValue(`pendingReviews.${index}.severity`, v, { shouldValidate: true })
+  }, [setValue, index])
+
+  const handleDueDateChange = useCallback((value: string | undefined) => {
+    setValue(`pendingReviews.${index}.dueDate`, value ?? '', { shouldValidate: true })
+  }, [setValue, index])
+
+  const handleRemove = useCallback(() => {
+    onRemove(index)
+  }, [onRemove, index])
+
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex-1">
+        <Select value={watch(`pendingReviews.${index}.type`)} onValueChange={handleTypeChange}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Review type" />
+          </SelectTrigger>
+          <SelectContent>
+            {REVIEW_TYPES.map((t) => (
+              <SelectItem key={t} value={t}>{t}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="w-[160px] shrink-0">
+        <DateInput value={watch(`pendingReviews.${index}.dueDate`) || undefined} onChange={handleDueDateChange} placeholder="Due date" />
+      </div>
+      <div className="w-[120px] shrink-0">
+        <Select value={watch(`pendingReviews.${index}.severity`)} onValueChange={handleSeverityChange}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Severity" />
+          </SelectTrigger>
+          <SelectContent>
+            {SEVERITIES.map((s) => (
+              <SelectItem key={s} value={s}>{s}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <button type="button" onClick={handleRemove} className="text-black/40 hover:text-black/60">
+        <Trash2 className="h-4 w-4" />
+      </button>
+    </div>
+  )
+})
 
 export default PolicyFormModal

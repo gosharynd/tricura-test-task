@@ -1,7 +1,7 @@
+import { useMemo, useCallback, memo } from 'react'
 import { X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import type { PolicyFilters } from '../filters/schema'
-import { formatCurrency } from '@/lib/format'
+import { formatCurrency, formatMonth } from '@/lib/format'
 
 type FilterChipsProps = {
   filters: PolicyFilters
@@ -13,11 +13,6 @@ type ChipDef = {
   key: keyof PolicyFilters
   label: string
   removeKeys: (keyof PolicyFilters)[]
-}
-
-const formatMonth = (iso: string) => {
-  const d = new Date(iso)
-  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
 }
 
 const buildChips = (filters: PolicyFilters): ChipDef[] => {
@@ -51,22 +46,51 @@ const buildChips = (filters: PolicyFilters): ChipDef[] => {
 }
 
 const FilterChips = ({ filters, onRemove, onClearAll }: FilterChipsProps) => {
-  const chips = buildChips(filters)
-  if (chips.length === 0) return null
+  const chips = useMemo(() => buildChips(filters), [filters])
+  const hasChips = chips.length > 0
+
+  if (!hasChips) return null
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
       {chips.map((chip) => (
-        <span key={chip.key} className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs font-medium px-2.5 py-1 rounded-full">
-          {chip.label}
-          <button type="button" onClick={() => chip.removeKeys.forEach((k) => onRemove(k))} className="ml-0.5 hover:bg-blue-100 rounded-full p-0.5">
-            <X className="h-3 w-3" />
-          </button>
-        </span>
+        <FilterChip key={chip.key} chip={chip} onRemove={onRemove} />
       ))}
-      <Button variant="ghost" size="sm" onClick={onClearAll} className="text-xs uppercase">Clear all</Button>
+      <button
+        type="button"
+        onClick={onClearAll}
+        className="text-xs font-medium uppercase tracking-wide text-[#1976d2] hover:text-[#1565c0]"
+      >
+        Clear all
+      </button>
     </div>
   )
 }
+
+// Extracted to avoid inline arrow in .map()
+type FilterChipProps = {
+  chip: ChipDef
+  onRemove: <K extends keyof PolicyFilters>(key: K) => void
+}
+
+const FilterChip = memo(({ chip, onRemove }: FilterChipProps) => {
+  const handleRemove = useCallback(() => {
+    chip.removeKeys.forEach((k) => onRemove(k))
+  }, [chip.removeKeys, onRemove])
+
+  return (
+    <span className="inline-flex items-center gap-1 bg-[#e1f5fe] text-[#0288d1] text-xs font-semibold px-2.5 h-6 rounded-full whitespace-nowrap">
+      {chip.label}
+      <button
+        type="button"
+        onClick={handleRemove}
+        className="ml-0.5 hover:bg-[#b3e5fc] rounded-full p-0.5"
+        aria-label={`Remove ${chip.label} filter`}
+      >
+        <X className="h-3 w-3" />
+      </button>
+    </span>
+  )
+})
 
 export default FilterChips

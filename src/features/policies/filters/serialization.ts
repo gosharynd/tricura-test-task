@@ -1,3 +1,4 @@
+import { DEFAULT_PAGE_SIZE } from '../constants'
 import type { PolicyFilters } from './schema'
 
 export const filtersToSearchParams = (
@@ -20,7 +21,7 @@ export const filtersToSearchParams = (
   if (filters.reimbursementRiskMin !== undefined) params.set('reimbursementRiskMin', String(filters.reimbursementRiskMin))
   if (filters.reimbursementRiskMax !== undefined) params.set('reimbursementRiskMax', String(filters.reimbursementRiskMax))
   if (page > 1) params.set('page', String(page))
-  if (limit !== 20) params.set('limit', String(limit))
+  if (limit !== DEFAULT_PAGE_SIZE) params.set('limit', String(limit))
 
   return params
 }
@@ -52,6 +53,6 @@ export const searchParamsToFilters = (
       reimbursementRiskMax: parseNum('reimbursementRiskMax'),
     },
     page: Number(params.get('page') || '1'),
-    limit: Number(params.get('limit') || '20'),
+    limit: Number(params.get('limit') || String(DEFAULT_PAGE_SIZE)),
   }
 }

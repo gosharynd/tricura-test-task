@@ -1,13 +1,13 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo, memo } from 'react'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Input } from '@/components/ui/input'
+import DateInput from '@/components/common/DateInput'
 import RangeSlider from '@/components/common/RangeSlider'
-import { REGIONS } from '../constants'
-import { formatCurrency } from '@/lib/format'
+import { REGIONS, PREMIUM_RANGE, CLAIMS_RANGE, RISK_RANGE } from '../constants'
+import { formatInteger, formatDecimal } from '@/lib/format'
 import type { PolicyFilters } from '../filters/schema'
 
 type FiltersModalProps = {
@@ -20,15 +20,9 @@ type FiltersModalProps = {
 const FiltersModal = ({ open, onOpenChange, filters, onApply }: FiltersModalProps) => {
   const [draft, setDraft] = useState<PolicyFilters>(filters)
 
-  useEffect(() => {
-    if (open) {
-      setDraft(filters)
-    }
-  }, [open, filters])
-
-  const updateDraft = useCallback(<K extends keyof PolicyFilters>(key: K, value: PolicyFilters[K]) => {
-    setDraft((prev) => ({ ...prev, [key]: value }))
-  }, [])
+  // Sync draft state when modal opens — intentional pattern for draft/apply modals
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { if (open) setDraft(filters) }, [open, filters])
 
   const handleRegionToggle = useCallback((region: string, checked: boolean) => {
     setDraft((prev) => {
@@ -40,6 +34,26 @@ const FiltersModal = ({ open, onOpenChange, filters, onApply }: FiltersModalProp
     })
   }, [])
 
+  const handleDateFromChange = useCallback((value: string | undefined) => {
+    setDraft((prev) => ({ ...prev, effectiveDateFrom: value }))
+  }, [])
+
+  const handleDateToChange = useCallback((value: string | undefined) => {
+    setDraft((prev) => ({ ...prev, effectiveDateTo: value }))
+  }, [])
+
+  const handlePremiumChange = useCallback(([min, max]: [number | undefined, number | undefined]) => {
+    setDraft((prev) => ({ ...prev, premiumMin: min, premiumMax: max }))
+  }, [])
+
+  const handleClaimsChange = useCallback(([min, max]: [number | undefined, number | undefined]) => {
+    setDraft((prev) => ({ ...prev, claimsTotalMin: min, claimsTotalMax: max }))
+  }, [])
+
+  const handleRiskChange = useCallback(([min, max]: [number | undefined, number | undefined]) => {
+    setDraft((prev) => ({ ...prev, reimbursementRiskMin: min, reimbursementRiskMax: max }))
+  }, [])
+
   const handleReset = useCallback(() => {
     setDraft({})
   }, [])
@@ -49,9 +63,36 @@ const FiltersModal = ({ open, onOpenChange, filters, onApply }: FiltersModalProp
     onOpenChange(false)
   }, [draft, onApply, onOpenChange])
 
+  const handleCancel = useCallback(() => {
+    onOpenChange(false)
+  }, [onOpenChange])
+
+  const formatRiskLabel = useCallback((v: number) => v.toFixed(2), [])
+
+  const formatCurrencyShort = useCallback((v: number) => {
+    if (v >= 1_000_000) return `$${v / 1_000_000}M`
+    if (v >= 1_000) return `$${v / 1_000}k`
+    return `$${v}`
+  }, [])
+
+  const premiumValue = useMemo(
+    (): [number | undefined, number | undefined] => [draft.premiumMin, draft.premiumMax],
+    [draft.premiumMin, draft.premiumMax],
+  )
+
+  const claimsValue = useMemo(
+    (): [number | undefined, number | undefined] => [draft.claimsTotalMin, draft.claimsTotalMax],
+    [draft.claimsTotalMin, draft.claimsTotalMax],
+  )
+
+  const riskValue = useMemo(
+    (): [number | undefined, number | undefined] => [draft.reimbursementRiskMin, draft.reimbursementRiskMax],
+    [draft.reimbursementRiskMin, draft.reimbursementRiskMax],
+  )
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-[720px] max-h-[85vh] overflow-y-auto scrollbar-hide">
         <DialogHeader>
           <DialogTitle>Filters</DialogTitle>
           <DialogDescription>Narrow the policy list. Filters are combined with AND.</DialogDescription>
@@ -60,96 +101,84 @@ const FiltersModal = ({ open, onOpenChange, filters, onApply }: FiltersModalProp
         <div className="space-y-6 py-4">
           {/* Region */}
           <div className="space-y-3">
-            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <span className="text-xs font-semibold uppercase tracking-wide text-black/60">
               Region
-            </label>
-            <div className="flex flex-wrap gap-4">
+            </span>
+            <div className="flex gap-4">
               {REGIONS.map((region) => (
-                <label key={region} className="flex items-center gap-2 text-sm cursor-pointer">
-                  <Checkbox
-                    checked={(draft.region ?? []).includes(region)}
-                    onCheckedChange={(checked) => handleRegionToggle(region, !!checked)}
-                  />
-                  {region}
-                </label>
+                <RegionCheckbox
+                  key={region}
+                  region={region}
+                  checked={(draft.region ?? []).includes(region)}
+                  onToggle={handleRegionToggle}
+                />
               ))}
             </div>
           </div>
 
           {/* Effective Date Range */}
           <div className="space-y-3">
-            <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <span className="text-xs font-semibold uppercase tracking-wide text-black/60">
               Effective Date Range
-            </label>
+            </span>
             <div className="flex gap-4">
               <div className="flex-1">
-                <label className="text-xs text-muted-foreground">From</label>
-                <Input
-                  type="date"
-                  value={draft.effectiveDateFrom ?? ''}
-                  onChange={(e) => updateDraft('effectiveDateFrom', e.target.value || undefined)}
-                />
+                <label className="text-xs text-black/60">From</label>
+                <DateInput value={draft.effectiveDateFrom} onChange={handleDateFromChange} />
               </div>
               <div className="flex-1">
-                <label className="text-xs text-muted-foreground">To</label>
-                <Input
-                  type="date"
-                  value={draft.effectiveDateTo ?? ''}
-                  onChange={(e) => updateDraft('effectiveDateTo', e.target.value || undefined)}
-                />
+                <label className="text-xs text-black/60">To</label>
+                <DateInput value={draft.effectiveDateTo} onChange={handleDateToChange} />
               </div>
             </div>
           </div>
 
           {/* Premium Range */}
           <RangeSlider
-            label="Premium Range"
-            min={0}
-            max={1_000_000}
-            step={10_000}
-            value={[draft.premiumMin, draft.premiumMax]}
-            onChange={([min, max]) => {
-              setDraft((prev) => ({ ...prev, premiumMin: min, premiumMax: max }))
-            }}
-            formatLabel={formatCurrency}
+            label="Premium Range ($)"
+            min={PREMIUM_RANGE.min}
+            max={PREMIUM_RANGE.max}
+            step={PREMIUM_RANGE.step}
+            value={premiumValue}
+            onChange={handlePremiumChange}
+            formatLabel={formatCurrencyShort}
+            formatValue={formatInteger}
           />
 
           {/* Claims Range */}
           <RangeSlider
-            label="Claims Range"
-            min={0}
-            max={1_000_000}
-            step={10_000}
-            value={[draft.claimsTotalMin, draft.claimsTotalMax]}
-            onChange={([min, max]) => {
-              setDraft((prev) => ({ ...prev, claimsTotalMin: min, claimsTotalMax: max }))
-            }}
-            formatLabel={formatCurrency}
+            label="Total Claims Range ($)"
+            min={CLAIMS_RANGE.min}
+            max={CLAIMS_RANGE.max}
+            step={CLAIMS_RANGE.step}
+            value={claimsValue}
+            onChange={handleClaimsChange}
+            formatLabel={formatCurrencyShort}
+            formatValue={formatInteger}
           />
 
           {/* Reimbursement Risk Range */}
           <RangeSlider
-            label="Reimbursement Risk"
-            min={0}
-            max={1}
-            step={0.01}
-            value={[draft.reimbursementRiskMin, draft.reimbursementRiskMax]}
-            onChange={([min, max]) => {
-              setDraft((prev) => ({ ...prev, reimbursementRiskMin: min, reimbursementRiskMax: max }))
-            }}
-            formatLabel={(v) => v.toFixed(2)}
+            label="Reimbursement Risk Range"
+            min={RISK_RANGE.min}
+            max={RISK_RANGE.max}
+            step={RISK_RANGE.step}
+            value={riskValue}
+            onChange={handleRiskChange}
+            formatLabel={formatRiskLabel}
+            formatValue={formatDecimal}
           />
         </div>
 
         <DialogFooter className="flex items-center justify-between sm:justify-between">
-          <Button variant="ghost" onClick={handleReset}>
+          <Button variant="ghost" onClick={handleReset} className="text-[#1976d2] uppercase text-xs font-semibold tracking-wide">
             Reset All
           </Button>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button variant="outline" onClick={handleCancel} className="uppercase text-xs font-semibold tracking-wide">
               Cancel
             </Button>
-            <Button onClick={handleApply}>
+            <Button onClick={handleApply} className="bg-[#1976d2] hover:bg-[#1565c0] text-white uppercase text-xs font-semibold tracking-wide">
               Apply Filters
             </Button>
           </div>
@@ -158,5 +187,25 @@ const FiltersModal = ({ open, onOpenChange, filters, onApply }: FiltersModalProp
     </Dialog>
   )
 }
+
+// Extracted to avoid inline arrow in .map()
+type RegionCheckboxProps = {
+  region: string
+  checked: boolean
+  onToggle: (region: string, checked: boolean) => void
+}
+
+const RegionCheckbox = memo(({ region, checked, onToggle }: RegionCheckboxProps) => {
+  const handleChange = useCallback((checkedState: boolean | 'indeterminate') => {
+    onToggle(region, !!checkedState)
+  }, [onToggle, region])
+
+  return (
+    <label className="flex items-center gap-2 text-sm cursor-pointer">
+      <Checkbox checked={checked} onCheckedChange={handleChange} />
+      {region}
+    </label>
+  )
+})
 
 export default FiltersModal

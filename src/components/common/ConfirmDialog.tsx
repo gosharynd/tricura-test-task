@@ -1,3 +1,4 @@
+import { useCallback, memo } from 'react'
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog'
@@ -13,7 +14,11 @@ type ConfirmDialogProps = {
   isPending?: boolean
 }
 
-const ConfirmDialog = ({ open, onOpenChange, title, description, confirmLabel = 'Confirm', onConfirm, isPending }: ConfirmDialogProps) => {
+const ConfirmDialog = memo(({ open, onOpenChange, title, description, confirmLabel = 'Confirm', onConfirm, isPending }: ConfirmDialogProps) => {
+  const handleCancel = useCallback(() => {
+    onOpenChange(false)
+  }, [onOpenChange])
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -22,7 +27,7 @@ const ConfirmDialog = ({ open, onOpenChange, title, description, confirmLabel = 
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>Cancel</Button>
+          <Button variant="outline" onClick={handleCancel} disabled={isPending}>Cancel</Button>
           <Button variant="destructive" onClick={onConfirm} disabled={isPending}>
             {isPending ? 'Deleting...' : confirmLabel}
           </Button>
@@ -30,6 +35,6 @@ const ConfirmDialog = ({ open, onOpenChange, title, description, confirmLabel = 
       </DialogContent>
     </Dialog>
   )
-}
+})
 
 export default ConfirmDialog

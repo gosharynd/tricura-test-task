@@ -6,11 +6,15 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+reference
 
 node_modules
 dist
 dist-ssr
 *.local
+
+# Playwright MCP
+.playwright-mcp/
 
 # Editor directories and files
 .vscode/*
