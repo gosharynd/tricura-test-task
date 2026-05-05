@@ -12,7 +12,7 @@ export const PolicyFormSchema = z.object({
   region: z.enum(REGIONS as [string, ...string[]], { message: 'Region is required' }),
   facilityCount: z.number().int().min(1, 'At least 1 facility'),
   effectiveDate: z.string().min(1, 'Effective date is required'),
-  daysUntilRenewal: z.number().int().min(0),
+  daysUntilRenewal: z.number().int(),
   premium: z.number().min(0, 'Premium must be positive'),
   claimsTotal: z.number().min(0, 'Claims must be positive'),
   reimbursementRisk: z.number().min(0).max(1, 'Risk must be 0–1'),

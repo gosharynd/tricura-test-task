@@ -1,5 +1,5 @@
 import { useEffect, useCallback, memo } from 'react'
-import { useForm, useFieldArray } from 'react-hook-form'
+import { useForm, useFieldArray, useWatch, type Control } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Trash2 } from 'lucide-react'
 import {
@@ -102,14 +102,14 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, onDelete,
           <div className="space-y-3">
             <h5 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-black/60 pb-1.5 border-b border-black/6">Account</h5>
             <div className="grid grid-cols-3 gap-3">
-              <FloatingInput legend="Account name">
+              <FloatingInput legend="Account name" error={errors.accountName?.message}>
                 <input
                   {...register('accountName')}
                   placeholder="Account name"
                   className="w-full text-[13px] text-black/87 bg-transparent outline-none placeholder:text-black/38"
                 />
               </FloatingInput>
-              <FloatingInput legend="Region">
+              <FloatingInput legend="Region" error={errors.region?.message}>
                 <Select value={watch('region')} onValueChange={handleRegionChange}>
                   <SelectTrigger className="w-full w-full !h-auto border-0 p-0 shadow-none focus:ring-0 text-[13px]">
                     <SelectValue placeholder="Select region" />
@@ -121,7 +121,7 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, onDelete,
                   </SelectContent>
                 </Select>
               </FloatingInput>
-              <FloatingInput legend="Facility count">
+              <FloatingInput legend="Facility count" error={errors.facilityCount?.message}>
                 <input
                   type="number"
                   {...register('facilityCount', { valueAsNumber: true })}
@@ -129,19 +129,16 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, onDelete,
                 />
               </FloatingInput>
             </div>
-            {errors.accountName && <p className="text-xs text-red-500">{errors.accountName.message}</p>}
-            {errors.region && <p className="text-xs text-red-500">{errors.region.message}</p>}
-            {errors.facilityCount && <p className="text-xs text-red-500">{errors.facilityCount.message}</p>}
           </div>
 
           {/* Renewal */}
           <div className="space-y-3">
             <h5 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-black/60 pb-1.5 border-b border-black/6">Renewal</h5>
             <div className="grid grid-cols-2 gap-3">
-              <FloatingInput legend="Effective date">
+              <FloatingInput legend="Effective date" error={errors.effectiveDate?.message}>
                 <DateInput value={watch('effectiveDate') || undefined} onChange={handleEffectiveDateChange} variant="inline" />
               </FloatingInput>
-              <FloatingInput legend="Days until renewal (computed)">
+              <FloatingInput legend="Days until renewal (computed)" error={errors.daysUntilRenewal?.message}>
                 <input
                   type="number"
                   {...register('daysUntilRenewal', { valueAsNumber: true })}
@@ -149,22 +146,20 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, onDelete,
                 />
               </FloatingInput>
             </div>
-            {errors.effectiveDate && <p className="text-xs text-red-500">{errors.effectiveDate.message}</p>}
-            {errors.daysUntilRenewal && <p className="text-xs text-red-500">{errors.daysUntilRenewal.message}</p>}
           </div>
 
           {/* Financials */}
           <div className="space-y-3">
             <h5 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-black/60 pb-1.5 border-b border-black/6">Financials</h5>
             <div className="grid grid-cols-2 gap-3">
-              <FloatingInput legend="Premium ($)">
+              <FloatingInput legend="Premium ($)" error={errors.premium?.message}>
                 <input
                   type="number"
                   {...register('premium', { valueAsNumber: true })}
                   className="w-full text-[13px] text-black/87 bg-transparent outline-none placeholder:text-black/38"
                 />
               </FloatingInput>
-              <FloatingInput legend="Claims total ($)">
+              <FloatingInput legend="Claims total ($)" error={errors.claimsTotal?.message}>
                 <input
                   type="number"
                   {...register('claimsTotal', { valueAsNumber: true })}
@@ -172,8 +167,6 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, onDelete,
                 />
               </FloatingInput>
             </div>
-            {errors.premium && <p className="text-xs text-red-500">{errors.premium.message}</p>}
-            {errors.claimsTotal && <p className="text-xs text-red-500">{errors.claimsTotal.message}</p>}
           </div>
 
           {/* Reimbursement Risk (under Financials — no separator) */}
@@ -238,7 +231,7 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, onDelete,
               <PendingReviewField
                 key={field.id}
                 index={idx}
-                watch={watch}
+                control={control}
                 setValue={setValue}
                 onRemove={remove}
               />
@@ -271,12 +264,14 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, onDelete,
 // Extracted to avoid inline arrows in .map()
 type PendingReviewFieldProps = {
   index: number
-  watch: ReturnType<typeof useForm<PolicyFormData>>['watch']
+  control: Control<PolicyFormData>
   setValue: ReturnType<typeof useForm<PolicyFormData>>['setValue']
   onRemove: (index: number) => void
 }
 
-const PendingReviewField = memo(({ index, watch, setValue, onRemove }: PendingReviewFieldProps) => {
+const PendingReviewField = memo(({ index, control, setValue, onRemove }: PendingReviewFieldProps) => {
+  const review = useWatch({ control, name: `pendingReviews.${index}` })
+
   const handleTypeChange = useCallback((v: string) => {
     setValue(`pendingReviews.${index}.type`, v, { shouldValidate: true })
   }, [setValue, index])
@@ -297,7 +292,7 @@ const PendingReviewField = memo(({ index, watch, setValue, onRemove }: PendingRe
     <div className="flex items-center gap-2">
       <div className="flex-[2]">
         <FloatingInput legend="Type">
-          <Select value={watch(`pendingReviews.${index}.type`)} onValueChange={handleTypeChange}>
+          <Select value={review.type} onValueChange={handleTypeChange}>
             <SelectTrigger className="w-full w-full !h-auto border-0 p-0 shadow-none focus:ring-0 text-[13px]">
               <SelectValue placeholder="Review type" />
             </SelectTrigger>
@@ -311,12 +306,12 @@ const PendingReviewField = memo(({ index, watch, setValue, onRemove }: PendingRe
       </div>
       <div className="flex-1">
         <FloatingInput legend="Due date">
-          <DateInput value={watch(`pendingReviews.${index}.dueDate`) || undefined} onChange={handleDueDateChange} placeholder="Due date" variant="inline" />
+          <DateInput value={review.dueDate || undefined} onChange={handleDueDateChange} placeholder="Due date" variant="inline" />
         </FloatingInput>
       </div>
       <div className="flex-1">
         <FloatingInput legend="Severity">
-          <Select value={watch(`pendingReviews.${index}.severity`)} onValueChange={handleSeverityChange}>
+          <Select value={review.severity} onValueChange={handleSeverityChange}>
             <SelectTrigger className="w-full w-full !h-auto border-0 p-0 shadow-none focus:ring-0 text-[13px]">
               <SelectValue placeholder="Severity" />
             </SelectTrigger>
