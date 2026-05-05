@@ -1,25 +1,34 @@
 # Policy Review Dashboard
 
-Frontend assessment for Tricura Insurance Group — a policy review dashboard built with React + TypeScript.
+A policy review dashboard built with React + TypeScript.
 
 ## Setup
 
 ```bash
-# Start backend (from project root)
-cd backend && npm install && npm run dev
-
-# Start frontend (from project root)
-cd frontend && pnpm install && pnpm dev
+pnpm install
+pnpm dev
 ```
 
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:4000
-- Swagger docs: http://localhost:4000/docs
+App runs at http://localhost:5173
+
+To generate API types from the backend OpenAPI schema:
+
+```bash
+pnpm codegen:api
+```
+
+## Environment
+
+Copy `.env.example` to `.env` and adjust if needed:
+
+```
+VITE_API_BASE_URL=http://localhost:4000
+```
 
 ## Tech Stack
 
-- React 18 + TypeScript + Vite
-- React Router v6 (URL-driven filter state)
+- React 19 + TypeScript + Vite
+- React Router v7 (URL-driven filter state)
 - TanStack Query v5 (server state + caching)
 - shadcn/ui + Tailwind CSS v4
 - react-hook-form + Zod (form validation)
@@ -30,7 +39,7 @@ cd frontend && pnpm install && pnpm dev
 Feature-based structure under `src/features/policies/`:
 
 - **api/** — fetch functions + TanStack Query hooks
-- **filters/** — 3-layer filter architecture (schema → serialization → URL hook)
+- **filters/** — 3-layer filter architecture (schema -> serialization -> URL hook)
 - **components/** — page, table, modals, detail panel
 
 Filters and pagination live in URL search params. UI-only state (expanded row, modal visibility) lives in React state.
