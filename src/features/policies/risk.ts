@@ -7,14 +7,14 @@ export const computeRiskLevel = (reimbursementRisk: number): RiskLevel => {
 }
 
 export const RISK_COLORS: Record<RiskLevel, string> = {
-  High: 'text-[#d32f2f] bg-[#fdecea]',
-  Medium: 'text-[#ed6c02] bg-[#fff4e5]',
-  Low: 'text-[#2e7d32] bg-[#e8f5e9]',
+  High: 'text-danger bg-danger-bg',
+  Medium: 'text-warning bg-warning-bg',
+  Low: 'text-success bg-success-bg',
 }
 
 export const SEVERITY_COLORS: Record<Severity, string> = {
-  critical: 'text-[#d32f2f] bg-[#fdecea]',
-  high: 'text-[#ed6c02] bg-[#fff4e5]',
-  medium: 'text-[#0288d1] bg-[#e1f5fe]',
-  low: 'text-[#2e7d32] bg-[#e8f5e9]',
+  critical: 'text-danger bg-danger-bg',
+  high: 'text-warning bg-warning-bg',
+  medium: 'text-info bg-info-bg',
+  low: 'text-success bg-success-bg',
 }

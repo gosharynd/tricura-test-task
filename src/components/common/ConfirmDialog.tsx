@@ -28,7 +28,7 @@ const ConfirmDialog = memo(({ open, onOpenChange, title, description, confirmLab
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={handleCancel} disabled={isPending}>Cancel</Button>
-          <Button onClick={onConfirm} disabled={isPending} className="bg-[#d32f2f] hover:bg-[#b71c1c] text-white">
+          <Button onClick={onConfirm} disabled={isPending} className="bg-danger hover:bg-danger-hover text-white">
             {isPending ? 'Deleting...' : confirmLabel}
           </Button>
         </DialogFooter>

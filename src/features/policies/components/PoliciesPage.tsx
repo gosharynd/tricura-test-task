@@ -11,10 +11,10 @@ import PolicyFormModal from './PolicyFormModal'
 import ConfirmDialog from '@/components/common/ConfirmDialog'
 import { usePolicyFilters } from '../filters/hook'
 import { usePolicies, usePolicy, useCreatePolicy, useUpdatePolicy, useDeletePolicy } from '../api/queries'
+import { formDataToApiPayload } from '../mappers'
 import type { ListPoliciesParams } from '../api/api'
 import type { PolicyFilters } from '../filters/schema'
 import type { PolicyFormData } from './PolicyFormModal.schema'
-import type { CreatePolicyInput, UpdatePolicyInput, Severity, ReviewType, Region } from '../types'
 
 type FormModalState = {
   open: boolean
@@ -30,12 +30,10 @@ const PoliciesPage = () => {
 
   const debouncedSearch = useDebounce(filters.search, 300)
 
-  // Build API params — if >1 region selected, omit region from API and fetch all records for client-side filtering
-  const isMultiRegion = (filters.region?.length ?? 0) > 1
   const apiParams = useMemo((): ListPoliciesParams => {
     const params: ListPoliciesParams = {
-      page: isMultiRegion ? 1 : page,
-      limit: isMultiRegion ? 100 : limit,
+      page,
+      limit,
       search: debouncedSearch || undefined,
       effectiveDateFrom: filters.effectiveDateFrom,
       effectiveDateTo: filters.effectiveDateTo,
@@ -46,36 +44,16 @@ const PoliciesPage = () => {
       reimbursementRiskMin: filters.reimbursementRiskMin,
       reimbursementRiskMax: filters.reimbursementRiskMax,
     }
-    if (filters.region && filters.region.length === 1) {
-      params.region = filters.region[0]
+    if (filters.region && filters.region.length > 0) {
+      params.region = filters.region.join(',')
     }
     return params
-  }, [filters, debouncedSearch, page, limit, isMultiRegion])
+  }, [filters, debouncedSearch, page, limit])
 
   const { data: policiesData, isLoading, isError, error, refetch } = usePolicies(apiParams)
 
-  // Client-side region filtering + pagination when multiple regions selected
-  const filteredData = useMemo(() => {
-    if (!policiesData) return undefined
-    if (!filters.region || filters.region.length <= 1) return policiesData
-    const regionSet = new Set(filters.region)
-    const allFiltered = policiesData.data.filter((p) => regionSet.has(p.region))
-    const total = allFiltered.length
-    const totalPages = Math.ceil(total / limit) || 1
-    const start = (page - 1) * limit
-    const paged = allFiltered.slice(start, start + limit)
-    return {
-      ...policiesData,
-      data: paged,
-      pagination: { page, limit, total, totalPages },
-    }
-  }, [policiesData, filters.region, limit, page])
-
   // Edit policy data
-  const editPolicyId = useMemo(
-    () => (formModal.open && formModal.mode === 'edit' ? formModal.policyId ?? null : null),
-    [formModal.open, formModal.mode, formModal.policyId],
-  )
+  const editPolicyId = formModal.open && formModal.mode === 'edit' ? formModal.policyId ?? null : null
   const { data: editPolicy } = usePolicy(editPolicyId)
 
   const { mutate: createMutate, isPending: createPending } = useCreatePolicy()
@@ -137,17 +115,8 @@ const PoliciesPage = () => {
   }, [])
 
   const handleFormSubmit = useCallback((data: PolicyFormData) => {
+    const input = formDataToApiPayload(data)
     if (formModal.mode === 'create') {
-      const input: CreatePolicyInput = {
-        account: { name: data.accountName, region: data.region as Region, facilityCount: data.facilityCount },
-        renewal: { effectiveDate: data.effectiveDate, daysUntilRenewal: data.daysUntilRenewal },
-        financials: { premium: data.premium, claimsTotal: data.claimsTotal, reimbursementRisk: data.reimbursementRisk },
-        compliance: {
-          missingDocuments: data.missingDocuments,
-          expiredDocuments: data.expiredDocuments,
-          pendingReviews: data.pendingReviews.map((r) => ({ type: r.type as ReviewType, dueDate: r.dueDate, severity: r.severity as Severity })),
-        },
-      }
       createMutate(input, {
         onSuccess: () => {
           setFormModal({ open: false, mode: 'create' })
@@ -158,16 +127,6 @@ const PoliciesPage = () => {
         },
       })
     } else if (formModal.policyId) {
-      const input: UpdatePolicyInput = {
-        account: { name: data.accountName, region: data.region as Region, facilityCount: data.facilityCount },
-        renewal: { effectiveDate: data.effectiveDate, daysUntilRenewal: data.daysUntilRenewal },
-        financials: { premium: data.premium, claimsTotal: data.claimsTotal, reimbursementRisk: data.reimbursementRisk },
-        compliance: {
-          missingDocuments: data.missingDocuments,
-          expiredDocuments: data.expiredDocuments,
-          pendingReviews: data.pendingReviews.map((r) => ({ type: r.type as ReviewType, dueDate: r.dueDate, severity: r.severity as Severity })),
-        },
-      }
       updateMutate({ id: formModal.policyId, input }, {
         onSuccess: () => {
           setFormModal({ open: false, mode: 'create' })
@@ -180,15 +139,9 @@ const PoliciesPage = () => {
     }
   }, [formModal, createMutate, updateMutate])
 
-  const filterButtonClass = useMemo(
-    () => `h-[30px] text-xs font-medium uppercase tracking-wide rounded ${activeFilterCount > 0 ? 'text-[#1976d2] border-[#1976d2]/50' : ''}`,
-    [activeFilterCount],
-  )
+  const filterButtonClass = `h-[30px] text-xs font-medium uppercase tracking-wide rounded ${activeFilterCount > 0 ? 'text-primary border-primary/50' : ''}`
 
-  const filterButtonLabel = useMemo(
-    () => activeFilterCount > 0 ? `FILTERS · ${activeFilterCount}` : 'FILTERS',
-    [activeFilterCount],
-  )
+  const filterButtonLabel = activeFilterCount > 0 ? `FILTERS · ${activeFilterCount}` : 'FILTERS'
 
   return (
     <div className="p-6 space-y-4">
@@ -227,7 +180,7 @@ const PoliciesPage = () => {
 
       {/* Table */}
       <PoliciesTable
-        data={filteredData}
+        data={policiesData}
         isLoading={isLoading}
         isError={isError}
         error={error}

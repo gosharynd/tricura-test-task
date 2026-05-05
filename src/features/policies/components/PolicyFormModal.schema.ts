@@ -23,9 +23,10 @@ export const PolicyFormSchema = z.object({
 
 export type PolicyFormData = z.infer<typeof PolicyFormSchema>
 
-export const DEFAULT_FORM_VALUES: PolicyFormData = {
+// Region defaults to empty string — Zod validation catches it on submit with "Region is required"
+export const DEFAULT_FORM_VALUES = {
   accountName: '',
-  region: '' as PolicyFormData['region'],
+  region: '',
   facilityCount: 1,
   effectiveDate: '',
   daysUntilRenewal: 0,

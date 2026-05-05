@@ -14,7 +14,6 @@ type PolicyDetailProps = {
   error?: Error | null
   onRetry: () => void
   onEdit: () => void
-  onDelete: () => void
 }
 
 const LoadingSkeleton = () => (
@@ -76,7 +75,7 @@ const PolicyDetail = ({ policy, isLoading, isError, error, onRetry, onEdit }: Po
                   </div>
                   <div>
                     <div className="text-[11px] uppercase tracking-wider text-black/60">Days to renewal</div>
-                    <div className={`text-sm font-medium mt-0.5 tabular-nums ${policy.renewal.daysUntilRenewal < 0 ? 'text-[#d32f2f]' : policy.renewal.daysUntilRenewal <= 30 ? 'text-[#ed6c02]' : 'text-black/87'}`}>{policy.renewal.daysUntilRenewal}</div>
+                    <div className={`text-sm font-medium mt-0.5 tabular-nums ${policy.renewal.daysUntilRenewal < 0 ? 'text-danger' : policy.renewal.daysUntilRenewal <= 30 ? 'text-warning' : 'text-black/87'}`}>{policy.renewal.daysUntilRenewal}</div>
                   </div>
                   <div>
                     <div className="text-[11px] uppercase tracking-wider text-black/60">Region</div>
@@ -135,7 +134,7 @@ const PolicyDetail = ({ policy, isLoading, isError, error, onRetry, onEdit }: Po
                   <button
                     type="button"
                     onClick={onEdit}
-                    className="text-[11px] font-bold uppercase tracking-wider text-[#1976d2] hover:text-[#1565c0]"
+                    className="text-[11px] font-bold uppercase tracking-wider text-primary hover:text-primary-hover"
                   >
                     Edit
                   </button>

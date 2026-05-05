@@ -1,4 +1,4 @@
-import { useMemo, useCallback, memo } from 'react'
+import { useCallback, memo } from 'react'
 import { TableRow, TableCell } from '@/components/ui/table'
 import RiskBadge from './RiskBadge'
 import { formatCurrency, formatDate } from '@/lib/format'
@@ -11,7 +11,7 @@ type PolicyRowProps = {
 }
 
 const PolicyRow = memo(({ policy, isExpanded, onToggle }: PolicyRowProps) => {
-  const arrow = useMemo(() => isExpanded ? '▾' : '▸', [isExpanded])
+  const arrow = isExpanded ? '▾' : '▸'
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTableRowElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {

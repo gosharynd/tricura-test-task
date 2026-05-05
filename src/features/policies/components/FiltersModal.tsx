@@ -170,14 +170,14 @@ const FiltersModal = ({ open, onOpenChange, filters, onApply }: FiltersModalProp
         </div>
 
         <DialogFooter className="flex-row items-center sm:justify-between border-t border-black/12 pt-4">
-          <Button variant="ghost" onClick={handleReset} className="text-[#1976d2] uppercase text-xs font-medium tracking-wide">
+          <Button variant="ghost" onClick={handleReset} className="text-primary uppercase text-xs font-medium tracking-wide">
             Reset All
           </Button>
           <div className="flex gap-2">
             <Button variant="ghost" onClick={handleCancel} className="uppercase text-xs font-medium tracking-wide">
               Cancel
             </Button>
-            <Button onClick={handleApply} className="bg-[#1976d2] hover:bg-[#1565c0] text-white uppercase text-xs font-semibold tracking-wide">
+            <Button onClick={handleApply} className="bg-primary hover:bg-primary-hover text-white uppercase text-xs font-semibold tracking-wide">
               Apply Filters
             </Button>
           </div>

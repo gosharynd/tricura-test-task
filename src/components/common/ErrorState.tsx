@@ -20,7 +20,7 @@ const ErrorState = ({ title, description, errorCode, onRetry }: ErrorStateProps)
         <code className="text-xs bg-black/5 text-black/60 px-2 py-1 rounded mb-4">{errorCode}</code>
       )}
       {onRetry && (
-        <Button variant="default" size="sm" onClick={onRetry} className="mt-2 bg-[#d32f2f] hover:bg-[#c62828] text-white uppercase text-xs font-semibold tracking-wide">
+        <Button variant="default" size="sm" onClick={onRetry} className="mt-2 bg-danger hover:bg-danger-hover text-white uppercase text-xs font-semibold tracking-wide">
           Retry
         </Button>
       )}

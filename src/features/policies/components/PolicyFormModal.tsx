@@ -222,7 +222,7 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, onDelete,
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-black/60">Pending Reviews</span>
-              <button type="button" onClick={handleAddReview} className="text-xs font-medium uppercase tracking-wide text-[#1976d2] hover:text-[#1565c0]">
+              <button type="button" onClick={handleAddReview} className="text-xs font-medium uppercase tracking-wide text-primary hover:text-primary-hover">
                 + Add Review
               </button>
             </div>
@@ -240,7 +240,7 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, onDelete,
 
           <DialogFooter className="flex-row items-center sm:justify-between border-t border-black/12 pt-4">
             {mode === 'edit' && onDelete ? (
-              <Button type="button" variant="ghost" onClick={onDelete} disabled={isPending} className="uppercase text-xs font-medium tracking-wide text-black/60 hover:text-[#d32f2f] hover:bg-[#fdecea]">
+              <Button type="button" variant="ghost" onClick={onDelete} disabled={isPending} className="uppercase text-xs font-medium tracking-wide text-black/60 hover:text-danger hover:bg-danger-bg">
                 Delete policy
               </Button>
             ) : (
@@ -250,7 +250,7 @@ const PolicyFormModal = ({ open, onOpenChange, mode, policy, onSubmit, onDelete,
               <Button type="button" variant="ghost" onClick={handleCancel} disabled={isPending} className="uppercase text-xs font-medium tracking-wide">
                 Cancel
               </Button>
-              <Button type="submit" disabled={isPending} className="bg-[#1976d2] hover:bg-[#1565c0] text-white uppercase text-xs font-medium tracking-wide">
+              <Button type="submit" disabled={isPending} className="bg-primary hover:bg-primary-hover text-white uppercase text-xs font-medium tracking-wide">
                 {isPending ? 'Saving...' : mode === 'create' ? 'Create policy' : 'Save changes'}
               </Button>
             </div>

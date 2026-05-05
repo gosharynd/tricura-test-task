@@ -59,7 +59,7 @@ const FilterChips = ({ filters, onRemove, onClearAll }: FilterChipsProps) => {
       <button
         type="button"
         onClick={onClearAll}
-        className="text-xs font-medium uppercase tracking-wide text-[#1976d2] hover:text-[#1565c0]"
+        className="text-xs font-medium uppercase tracking-wide text-primary hover:text-primary-hover"
       >
         Clear all
       </button>

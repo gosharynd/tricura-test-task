@@ -1,6 +1,5 @@
 import { useState, useCallback, useMemo, useEffect, useRef, memo } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
   Table, TableHeader, TableHead, TableRow, TableBody,
@@ -11,10 +10,9 @@ import {
 import TableSkeleton from '@/components/common/TableSkeleton'
 import ErrorState from '@/components/common/ErrorState'
 import EmptyState from '@/components/common/EmptyState'
-import ConfirmDialog from '@/components/common/ConfirmDialog'
 import PolicyRow from './PolicyRow'
 import PolicyDetail from './PolicyDetail'
-import { usePolicy, useDeletePolicy } from '../api/queries'
+import { usePolicy } from '../api/queries'
 import { PAGE_SIZE_OPTIONS, MAX_VISIBLE_PAGES, TABLE_COLUMN_COUNT } from '../constants'
 import type { PoliciesListResponse, PolicyListItem, Policy } from '../types'
 
@@ -39,10 +37,8 @@ const PoliciesTable = ({
   onClearFilters, onCreateNew, onEdit,
 }: PoliciesTableProps) => {
   const [expandedId, setExpandedId] = useState<string | null>(null)
-  const [deleteId, setDeleteId] = useState<string | null>(null)
 
   const { data: detailPolicy, isLoading: detailLoading, isError: detailError, error: detailErrorObj, refetch: refetchDetail } = usePolicy(expandedId)
-  const { mutate: deleteMutate, isPending: deletePending } = useDeletePolicy()
 
   const tableRef = useRef<HTMLDivElement>(null)
   const pendingExpandRef = useRef<'first' | 'last' | null>(null)
@@ -106,27 +102,6 @@ const PoliciesTable = ({
     }
   }, [data, expandedId, page, onPageChange])
 
-  const handleDelete = useCallback((id: string) => {
-    setDeleteId(id)
-  }, [])
-
-  const handleConfirmDelete = useCallback(() => {
-    if (!deleteId) return
-    deleteMutate(deleteId, {
-      onSuccess: () => {
-        setDeleteId(null)
-        if (expandedId === deleteId) setExpandedId(null)
-        toast.success('Policy deleted successfully')
-      },
-      onError: (err) => {
-        toast.error('Failed to delete policy', { description: err.message })
-      },
-    })
-  }, [deleteId, deleteMutate, expandedId])
-
-  const handleCloseDeleteDialog = useCallback((open: boolean) => {
-    if (!open) setDeleteId(null)
-  }, [])
 
   const handleLimitChange = useCallback((v: string) => {
     onLimitChange(Number(v))
@@ -141,8 +116,8 @@ const PoliciesTable = ({
   }, [onPageChange, page])
 
   const pagination = data?.pagination
-  const totalPages = useMemo(() => pagination?.totalPages ?? 1, [pagination?.totalPages])
-  const total = useMemo(() => pagination?.total ?? 0, [pagination?.total])
+  const totalPages = pagination?.totalPages ?? 1
+  const total = pagination?.total ?? 0
 
   const paginationLabel = useMemo(() => {
     const startItem = (page - 1) * limit + 1
@@ -167,12 +142,11 @@ const PoliciesTable = ({
   const isEmpty = !isLoading && !isError && data && data.data.length === 0
 
   return (
-    <>
     <div ref={tableRef} className="bg-white border border-black/12 rounded-lg outline-none" onKeyDown={handleTableKeyDown} tabIndex={-1}>
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3">
         <h2 className="text-base font-semibold text-black/87">Policies</h2>
-        <Button onClick={onCreateNew} size="sm" className="bg-[#1976d2] hover:bg-[#1565c0] text-white uppercase text-xs font-semibold tracking-wide">
+        <Button onClick={onCreateNew} size="sm" className="bg-primary hover:bg-primary-hover text-white uppercase text-xs font-semibold tracking-wide">
           + NEW POLICY
         </Button>
       </div>
@@ -233,7 +207,6 @@ const PoliciesTable = ({
                   isExpanded={expandedId === policy.id}
                   onToggle={handleToggle}
                   onEdit={onEdit}
-                  onDelete={handleDelete}
                   detailPolicy={expandedId === policy.id ? detailPolicy : undefined}
                   detailLoading={expandedId === policy.id && detailLoading}
                   detailError={expandedId === policy.id && detailError}
@@ -290,18 +263,6 @@ const PoliciesTable = ({
       )}
 
     </div>
-
-      {/* Delete Confirm */}
-      <ConfirmDialog
-        open={deleteId !== null}
-        onOpenChange={handleCloseDeleteDialog}
-        title="Delete Policy"
-        description="Are you sure you want to delete this policy? This action cannot be undone."
-        confirmLabel="Delete"
-        onConfirm={handleConfirmDelete}
-        isPending={deletePending}
-      />
-    </>
   )
 }
 
@@ -321,7 +282,7 @@ const PageButton = memo(({ page, isActive, onPageChange }: PageButtonProps) => {
     <Button
       variant={isActive ? 'default' : 'outline'}
       size="sm"
-      className={isActive ? 'bg-[#1976d2] text-white hover:bg-[#1565c0]' : ''}
+      className={isActive ? 'bg-primary text-white hover:bg-primary-hover' : ''}
       onClick={handleClick}
     >
       {page}
@@ -335,7 +296,6 @@ type PolicyRowWithDetailProps = {
   isExpanded: boolean
   onToggle: (id: string) => void
   onEdit: (id: string) => void
-  onDelete: (id: string) => void
   detailPolicy?: Policy
   detailLoading: boolean
   detailError: boolean
@@ -344,7 +304,7 @@ type PolicyRowWithDetailProps = {
 }
 
 const PolicyRowWithDetail = memo(({
-  policy, isExpanded, onToggle, onEdit, onDelete,
+  policy, isExpanded, onToggle, onEdit,
   detailPolicy, detailLoading, detailError, detailErrorObj,
   onRetryDetail,
 }: PolicyRowWithDetailProps) => {
@@ -355,10 +315,6 @@ const PolicyRowWithDetail = memo(({
   const handleEdit = useCallback(() => {
     onEdit(policy.id)
   }, [onEdit, policy.id])
-
-  const handleDelete = useCallback(() => {
-    onDelete(policy.id)
-  }, [onDelete, policy.id])
 
   return (
     <>
@@ -371,7 +327,6 @@ const PolicyRowWithDetail = memo(({
           error={detailErrorObj}
           onRetry={onRetryDetail}
           onEdit={handleEdit}
-          onDelete={handleDelete}
         />
       )}
     </>
